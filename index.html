@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Shivyogi Bendigerimath - Research Portfolio</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="./index.css">
+  <style>
+    /* Inline CSS to ensure Business Case section is visible */
+    #business-case {
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+    }
+    .section {
+      opacity: 1; /* Fallback to ensure all sections are visible */
+      transition: opacity 0.5s ease-in-out;
+    }
+    .section.visible {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>  
+  <!-- Navigation -->
+  <nav class="nav-container">
+    <div class="logo">Shivyogi Bendigerimath</div>
+    <div class="nav-links">
+      <a href="#about">About</a>
+      <a href="#skills">Skills</a>
+      <a href="#projects">Projects</a>
+      <a href="#domain-description">Domain Description</a>
+      <a href="#business-case">Business Case</a>
+      <a href="#contact">Contact</a>
+      <a href="#portfolio-info">Portfolio Info</a>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main>
+    <!-- About Section -->
+    <header id="about">
+      <h1>Hello, I'm Shivyogi Bendigerimath 👋</h1>
+      <p class="intro">
+        I am a passionate and enthusiastic student with a strong drive for learning and innovation. 
+        I thrive in dynamic environments and am highly adaptive to new technologies. With a keen interest 
+        in solving real-time problems, I actively seek opportunities to work on impactful projects and 
+        collaborate with like-minded individuals. I possess strong leadership skills, enabling me to take 
+        initiative, guide teams, and contribute meaningfully to collective goals. I am always eager to grow, 
+        explore, and make a difference through technology-driven solutions.
+      </p>
+    </header>
+
+    <!-- Skills Section -->
+    <section id="skills" class="section">
+      <h2><i class="fas fa-code"></i> Technical Skills</h2>
+      <div class="skills-container">
+        <div class="skills-column">
+          <h3>Programming Languages</h3>
+          <ul>
+            <li>Java</li>
+            <li>C++</li>
+            <li>Python</li>
+            <li>JavaScript</li>
+          </ul>
+        </div>
+        <div class="skills-column">
+          <h3>Core Competencies</h3>
+          <ul>
+            <li>Data Structures and Algorithms</li>
+            <li>Machine Learning & Deep Learning</li>
+            <li>Web Development (HTML,CSS,JavaScript,React.js, Node.js)</li>
+            <li>Computer Vision</li>
+          </ul>
+        </div>
+      </div>
+    
+      <h2 class="soft-skills-title"><i class="fas fa-users"></i> Soft Skills</h2>
+      <div class="skills-container">
+        <div class="skills-column">
+          <ul>
+            <li>🤝 Leadership & Team Management</li>
+            <li>🎯 Goal-Oriented & Result-Driven</li>
+            <li>😌 Empathy & Emotional Intelligence</li>
+          </ul>
+        </div>
+        <div class="skills-column">
+          <ul>
+            <li>👥 Teamwork & Collaboration</li>
+            <li>🧠 Problem-Solving & Critical Thinking</li>            
+            <li>🧘 Adaptability & Flexibility</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Projects Section -->
+    <section id="projects" class="section">
+      <h2><i class="fas fa-project-diagram"></i> Research Projects</h2>
+      <div class="projects-grid">
+        <article class="project">
+          <h3>Maritime Semantic Segmentation Using DeepLabV3+</h3>
+          <p>
+            This project addresses the challenges of maritime object detection and segmentation in dynamic 
+            environments, especially for Unmanned Surface Vehicles (USVs). We developed a DeepLabV3+ model 
+            with ResNet-101 and z-score normalization.
+          </p>
+          <p><i class="fas fa-chart-line"></i> Achieved 97.89% validation accuracy across 7,815 images over 80 epochs.</p>
+          <p><i class="fas fa-file-alt"></i> Published research paper</p>
+          <a href="https://drive.google.com/file/d/1W4uK4o-PqvrNghuYE43ZpJXZXV0V0FQi/view?usp=drive_link" target="_blank">
+            <i class="fas fa-book-open"></i> Read the full research paper
+          </a>
+        </article>
+
+        <article class="project">
+          <h3>Layer-wise Relevance Propagation For Brain MRI</h3>
+          <p>
+            This deep learning framework uses ResNet18 to classify MRI scans into four tumor categories. 
+            Layer-wise Relevance Propagation (LRP) enhances explainability with standard, overlayed, and 
+            pixel-wise heatmaps.
+          </p>
+          <p><i class="fas fa-chart-line"></i> Achieved 85% classification accuracy with interpretable diagnostics.</p>
+          <p><i class="fas fa-file-alt"></i> Published research work</p>
+          <a href="https://drive.google.com/file/d/182KNwHkfKSYj3roSSp6fDbLcR_xQoPhN/view?usp=drive_link" target="_blank">
+            <i class="fas fa-book-open"></i> Read the full research paper
+          </a>
+        </article>
+      </div>
+
+      <h2><i class="fas fa-project-diagram"></i> Development/Course Projects</h2>
+      <div class="projects-grid">
+        <article class="project">
+          <h3><i class="fas fa-globe-americas"></i> Web Travel Guide – All-in-One Tourism Platform</h3>
+          <p>
+            The Web Travel Guide is a comprehensive tourism platform designed to enhance the travel planning 
+            experience. It allows users to explore destinations, receive personalized recommendations, plan 
+            detailed itineraries, manage bookings, and track their travel history—all from a single, 
+            user-friendly interface. The platform also includes features for building a personal travel 
+            portfolio, sharing experiences, and uploading media. Administrators can efficiently manage 
+            content, bookings, and user engagement, ensuring a dynamic and seamless experience for all users.
+          </p>
+        </article>
+
+        <article class="project">
+          <h3><i class="fas fa-lock"></i> Door Security System – For Enhanced Security</h3>
+          <p>
+            This project focuses on developing and analyzing a Door Security System that enhances home and 
+            facility security through a combination of hardware interfacing and image-based access control 
+            mechanisms. The system integrates embedded C programming to control physical components such as 
+            keypads, LCD displays, and locking mechanisms, typically using microcontrollers like AVR or ARM 
+            LPC2148. In this project, I explored both the schematic analysis of the security circuit and 
+            the corresponding firmware logic used to authenticate users. The image included in this analysis 
+            demonstrates the real-world wiring and component layout, while the code ensures secure password 
+            verification, error handling, and system feedback through the display. This project reflects 
+            practical implementation of embedded systems, real-time interfacing, and access control 
+            mechanisms—essential for modern security solutions.
+          </p>
+          <a href="https://github.com/Shivyogi26/Door_Locking_System/tree/main" target="_blank">
+            <i class="fab fa-github"></i> GitHub link of the project
+          </a>
+        </article>
+      </div>
+    </section>
+
+    <!-- Domain Description Section -->
+    <section id="domain-description" class="section">
+      <h2><i class="fas fa-flag-checkered"></i> Oracle Red Bull Racing Domain Description</h2>
+      <article class="project">
+        <h3>Oracle Red Bull Racing: A Computer Science Engineering Perspective</h3>
+        <img src="./images/Logo.jpg" alt="Oracle_logo" width="75%" height="50%">
+        <p><strong>Oracle Red Bull Racing</strong> operates in the high-stakes, high-speed world of Formula 1 motorsport, where real-time decisions determine success. As a top-tier F1 team, Red Bull Racing leverages cutting-edge computing, data science, artificial intelligence, and cloud technologies — all core to Computer Science Engineering (CSE).</p>
+        
+        <p>The domain integrates
+           Automotive engineering, real-time systems, cloud computing, and intelligent analytics to enhance car performance, team strategy, and fan engagement.</p>
+        
+        <h4>🧠 Core Technical Pillars in CSE</h4>
+        <ul>
+          <li><strong>Real-Time Systems:</strong> Handle telemetry from 1000+ sensors per car, enabling millisecond-level decisions.</li>
+          <li><strong>Artificial Intelligence & Machine Learning:</strong> Support predictive analytics, driver behavior modeling, and race strategy simulations.</li>
+          <li><strong>Big Data & Cloud Computing (Oracle Cloud):</strong> Store and analyze terabytes of telemetry and simulation data using distributed cloud infrastructure.</li>
+          <li><strong>Simulation & Digital Twins:</strong> Use digital models to simulate car behavior under various track, weather, and mechanical conditions.</li>
+          <li><strong>Cyber-Physical Systems:</strong> Integrate software with physical systems like engines, tires, and aerodynamics.</li>
+          <li><strong>Human-Centered Computing:</strong> Power fan platforms and interactive systems through data-driven personalization and user experience analysis.</li>
+        </ul>
+
+        <h4>🔧 Key Application Areas</h4>
+        <div style="overflow-x: auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Application Area</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Race Strategy Optimization</strong></td>
+              <td>AI models recommend optimal tire strategies, pit windows, and fuel usage in real time.</td>
+            </tr>
+            <tr>
+              <td><strong>Vehicle Telemetry Monitoring</strong></td>
+              <td>Live sensor data helps engineers monitor performance, detect anomalies, and fine-tune systems.</td>
+            </tr>
+            <tr>
+              <td><strong>Aerodynamics Simulation</strong></td>
+              <td>Computational Fluid Dynamics (CFD) models test virtual designs for speed, stability, and drag.</td>
+            </tr>
+            <tr>
+              <td><strong>Predictive Maintenance</strong></td>
+              <td>Machine learning forecasts component wear and prevents failures mid-race or mid-season.</td>
+            </tr>
+            <tr>
+              <td><strong>Driver Behavior Analysis</strong></td>
+              <td>Data models evaluate driving patterns to optimize performance and understand fatigue/risk.</td>
+            </tr>
+            <tr>
+              <td><strong>Fan Engagement Platforms</strong></td>
+              <td>Oracle Cloud powers AI recommendations and content personalization for fans globally.</td>
+            </tr>
+            <tr>
+              <td><strong>Cloud Data Infrastructure</strong></td>
+              <td>Supports high-performance computing and analytics required for real-time and pre-race simulations.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+        <p class="simulation-summary">
+          This technology-driven domain showcases how Computer Science Engineering plays a pivotal role in enabling faster, smarter, and safer motorsport performance, making Red Bull Racing a leader on both the track and in the cloud.
+        </p>
+      </article>
+    </section>
+
+    <!-- Business Case Section -->
+    <section id="business-case" class="section">
+      <h2><i class="fas fa-briefcase"></i> Business Cases</h2>
+      
+      <!-- Case 1 -->
+      <article class="project">
+        <h3>1. Real-Time Race Strategy Optimization</h3>
+        <img src="./images/Race_stratergy.webp" alt="race_stratergy" width="75%" height="50%">
+        <p><strong>Challenge:</strong> Make strategic decisions during a race—when to pit, tire selection, undercut/overcut, fuel management—all in real-time, considering changing weather, safety cars, and rival behavior.</p>
+        <p><strong>Data Involved:</strong> Tire wear rates, lap times, weather conditions, competitor positions, fuel levels.</p>
+        <p><strong>Algorithms Used:</strong></p>
+        <ul>
+          <li><strong>Monte Carlo Tree Search (MCTS):</strong> Simulates thousands of possible future race paths and chooses moves (pit stops, tire changes) that maximize reward (finishing position).</li>
+          <li><strong>Markov Decision Process (MDP):</strong> Models the race as a sequence of states with probabilistic outcomes (e.g., rain → pit probability ↑).</li>
+          <li><strong>Reinforcement Learning (Deep Q-Learning):</strong> Trains an AI agent to make pit/tire decisions based on past race data and simulations.</li>
+          <li><strong>A* Search Algorithm:</strong> Used in overtaking simulation (find optimal path considering traffic and track layout).</li>
+        </ul>
+        <p><strong>Business Impact:</strong></p>
+        <ul>
+          <li><i class="fas fa-stopwatch"></i> 2–3 sec/pit stop improvement.</li>
+          <li><i class="fas fa-tachometer-alt"></i> 15% better tire management.</li>
+        </ul>
+      </article>
+    
+      <!-- Case 2 -->
+      <article class="project">
+        <h3>2. Vehicle Telemetry Data Analysis</h3>
+        <img src="./images/sensor.jpg" alt="sensors" width="75%" height="50%">
+        <p><strong>Challenge:</strong> Real-time monitoring of 1000+ sensors to detect performance anomalies, mechanical issues, or unsafe behavior.</p>
+        <p><strong>Data Involved:</strong> Engine temperature, brake pressure, throttle & gear usage, GPS & accelerometer data.</p>
+        <p><strong>Algorithms Used:</strong></p>
+        <ul>
+          <li><strong>Autoencoders:</strong> Train on "normal" data; any data that reconstructs poorly is flagged as an anomaly.</li>
+          <li><strong>Hidden Markov Models (HMM):</strong> Models sequential driving behaviors; detects abnormal transitions (e.g., brake too hard after throttle).</li>
+          <li><strong>Kalman Filters:</strong> Estimate true state of a system (e.g., speed, engine RPM) from noisy sensor readings.</li>
+          <li><strong>Dynamic Time Warping (DTW):</strong> Compares time-series laps (lap 1 vs lap 2 throttle data) for similarity.</li>
+        </ul>
+        <p><strong>Business Impact:</strong></p>
+        <ul>
+          <li><i class="fas fa-tools"></i> 20% reduction in undetected mechanical issues.</li>
+          <li><i class="fas fa-shield-alt"></i> Enhanced driver safety through real-time anomaly detection.</li>
+        </ul>
+      </article>
+    
+      <!-- Case 3 -->
+      <article class="project">
+        <h3>3. Aerodynamics & CFD Simulation</h3>
+        <img src="./images/Air_tunnel.jpg" alt="sensors" width="75%" height="50%">
+        <p><strong>Challenge:</strong> Improve car design by simulating airflow around the car. CFD is essential to test designs before wind tunnel testing or actual manufacturing.</p>
+        <p><strong>Data Involved:</strong> Car geometry, wind speed and direction, pressure, velocity, turbulence data.</p>
+        <p><strong>Algorithms Used:</strong></p>
+        <ul>
+          <li><strong>Finite Element Method (FEM) / Finite Volume Method (FVM):</strong> Numerically solve fluid flow equations (Navier-Stokes) over car surfaces.</li>
+          <li><strong>Multigrid Solvers:</strong> Accelerate the convergence of the solutions in CFD simulations.</li>
+          <li><strong>Conjugate Gradient Method:</strong> Solves large sparse systems of linear equations from CFD discretizations.</li>
+          <li><strong>Parallel Computing (MPI, CUDA):</strong> Distributes simulations over thousands of CPU/GPU cores in Oracle Cloud.</li>
+        </ul>
+        <p><strong>Business Impact:</strong></p>
+        <ul>
+          <li><i class="fas fa-percentage"></i> 30% cost reduction in physical testing.</li>
+          <li><i class="fas fa-sync-alt"></i> Faster iteration (hours vs. weeks).</li>
+        </ul>
+      </article>
+    
+      <!-- Case 4 -->
+      <article class="project">
+        <h3>4. Predictive Maintenance</h3>
+         <img src="./images/redbull_crew.jpeg" alt="predictive_maintance" width="75%" height="50%">
+        <p><strong>Challenge:</strong> Predict failure of parts (brakes, engine, gearbox) before they occur, reducing DNFs (Did Not Finish).</p>
+        <p><strong>Data Involved:</strong> Component vibration/fatigue, operating hours, oil temperature and pressure, historical failure logs.</p>
+        <p><strong>Algorithms Used:</strong></p>
+        <ul>
+          <li><strong>Random Forest / XGBoost:</strong> Classify whether a part is likely to fail based on usage metrics.</li>
+          <li><strong>Survival Analysis (Cox Proportional Hazard):</strong> Estimates how long a component will survive before failure.</li>
+          <li><strong>LSTM Networks:</strong> Model time-series degradation of parts to predict Remaining Useful Life (RUL).</li>
+          <li><strong>K-Means / DBSCAN:</strong> Cluster operational states (normal vs failure-prone modes).</li>
+        </ul>
+        <p><strong>Business Impact:</strong></p>
+        <ul>
+          <li><i class="fas fa-wrench"></i> 25% reduction in race retirements due to mechanical failures.</li>
+          <li><i class="fas fa-dollar-sign"></i> Significant savings in repair and replacement costs.</li>
+        </ul>
+      </article>
+    
+      <!-- Case 5 -->
+      <article class="project">
+        <h3>5. Driver Behavior & Performance Modeling</h3>
+          <img src="./images/max.jpg" alt="max" width="75%" height="50%">
+        <p><strong>Challenge:</strong> Analyze driver inputs (throttle, brake, gear, steering) to improve consistency and efficiency.</p>
+        <p><strong>Data Involved:</strong> Throttle % per lap, brake pressure, steering angle, sector times.</p>
+        <p><strong>Algorithms Used:</strong></p>
+        <ul>
+          <li><strong>Principal Component Analysis (PCA):</strong> Reduces dimensionality and highlights main differences in driving style.</li>
+          <li><strong>t-SNE / UMAP:</strong> Visualizes laps or drivers in 2D space for clustering.</li>
+          <li><strong>RNN / LSTM:</strong> Analyze sequences of driver inputs to detect patterns or fatigue.</li>
+          <li><strong>Bayesian Networks:</strong> Probabilistic inference on driver decisions under uncertain conditions.</li>
+        </ul>
+        <p><strong>Business Impact:</strong></p>
+        <ul>
+          <li><i class="fas fa-tachometer-alt"></i> 0.5% lap-time improvement.</li>
+          <li><i class="fas fa-user-shield"></i> Reduced injury risk via stress monitoring.</li>
+        </ul>
+      </article>
+    
+      <!-- Case 6 -->
+      <article class="project">
+        <h3>6. Fan Engagement & Sponsorship Analytics</h3>
+        <img src="./images/fan_engagement.jpg" alt="max" width="75%" height="50%">
+        <p><strong>Challenge:</strong> Engage global fans, recommend content, and measure sponsorship visibility ROI.</p>
+        <p><strong>Data Involved:</strong> Social media activity, app/web usage logs, merchandise purchase history, sponsor logo exposure.</p>
+        <p><strong>Algorithms Used:</strong></p>
+        <ul>
+          <li><strong>Collaborative Filtering (Matrix Factorization):</strong> Recommend merchandise, videos, or articles to fans.</li>
+          <li><strong>Sentiment Analysis (BERT, LSTM):</strong> Analyze fan sentiment from tweets, comments, and reviews.</li>
+          <li><strong>K-Means / Hierarchical Clustering:</strong> Segment fans into groups (casual, hardcore, merchandise buyers).</li>
+          <li><strong>A/B Testing Algorithms:</strong> Test which marketing campaigns or layouts work best.</li>
+        </ul>
+        <p><strong>Business Impact:</strong></p>
+        <ul>
+          <li><i class="fas fa-shopping-cart"></i> 40% increase in fan spending.</li>
+          <li><i class="fas fa-user-plus"></i> 2M+ new app users.</li>
+        </ul>
+      </article>
+    
+      <!-- Case 7 -->
+      <article class="project">
+        <h3>7. Digital Twin & Simulation</h3>
+        <img src="./images/twin_turbo.png" alt="max" width="75%" height="50%">
+        <p><strong>Challenge:</strong> Create real-time virtual replicas of the race car and its systems for simulation and testing.</p>
+        <p><strong>Data Involved:</strong> Physical model of car, real-time sensor feedback, environmental conditions.</p>
+        <p><strong>Algorithms Used:</strong></p>
+        <ul>
+          <li><strong>Agent-Based Modeling:</strong> Simulates individual components/agents (tires, driver, engine) interacting.</li>
+          <li><strong>Reinforcement Learning:</strong> Optimize system response to inputs (e.g., simulate crash avoidance strategies).</li>
+          <li><strong>Sim2Real Transfer Learning:</strong> Train in simulation, apply policies to real-world cars or simulators.</li>
+        </ul>
+        <p><strong>Business Impact:</strong></p>
+        <ul>
+          <li><i class="fas fa-car"></i> Improved car setup accuracy by 15%.</li>
+          <li><i class="fas fa-shield-alt"></i> Enhanced testing of safety-critical systems.</li>
+        </ul>
+      </article>
+    
+      <!-- Case 8 -->
+      <article class="project">
+        <h3>8. Cloud & Big Data Infrastructure (Oracle Cloud)</h3>
+        <p><strong>Challenge:</strong> Process, store, and analyze terabytes of data per race—real-time ingestion, high availability, and global access.</p>
+        <p><strong>Data Involved:</strong> Telemetry logs, CFD outputs, video streams, fan analytics.</p>
+        <p><strong>Algorithms Used:</strong></p>
+        <ul>
+          <li><strong>MapReduce / Apache Spark DAG Scheduling:</strong> Distribute telemetry log processing across nodes.</li>
+          <li><strong>Data Compression (LZ4, Snappy):</strong> Reduces storage and transmission time of sensor logs.</li>
+          <li><strong>Graph Algorithms (PageRank, Betweenness):</strong> Identify key influencers in fan networks.</li>
+          <li><strong>Load Balancing (Round Robin, Least Connections):</strong> Distribute incoming workload across cloud servers efficiently.</li>
+        </ul>
+        <p><strong>Business Impact:</strong></p>
+        <ul>
+          <li><i class="fas fa-cloud"></i> 50% faster data processing times.</li>
+          <li><i class="fas fa-globe"></i> Global access to real-time race analytics.</li>
+        </ul>
+      </article>
+    
+      <!-- Key Takeaways -->
+      <article class="project key-takeaways">
+        <h3>Key Takeaways for Businesses</h3>
+        <ul>
+          <li><i class="fas fa-lightbulb"></i> <strong>Data-Driven Agility:</strong> Real-time insights enhance responsiveness in any industry.</li>
+          <li><i class="fas fa-coins"></i> <strong>Cost Efficiency:</strong> Virtual testing reduces capital expenditures.</li>
+          <li><i class="fas fa-handshake"></i> <strong>Client Loyalty:</strong> Personalization drives engagement and retention.</li>
+          <li><i class="fas fa-tachometer-alt"></i> <strong>Performance Optimization:</strong> AI and ML improve efficiency and decision-making.</li>
+        </ul>
+      </article>
+    </section>
+    
+    <!-- Contact Section -->
+    <section id="contact" class="section">
+      <h2><i class="fas fa-envelope"></i> Connect With Me</h2>
+      <div class="contact-links">
+        <a href="https://github.com/Shivyogi26" target="_blank">
+          <i class="fab fa-github"></i> GitHub
+        </a>
+        <a href="https://linkedin.com/in/shivyogi-bendigerimath-386873284" target="_blank">
+          <i class="fab fa-linkedin"></i> LinkedIn
+        </a>
+        <a href="mailto:shivyogigb26@gmail.com">
+          <i class="fas fa-envelope"></i> Email
+        </a>
+      </div>
+    </section>
+
+    <!-- Portfolio Info Section -->
+    <section id="portfolio-info" class="section">
+      <h2><i class="fas fa-info-circle"></i> Portfolio Information</h2>
+      <dl>
+        <dt>Course Name</dt>
+        <dd>Algorithmic Problem Solving</dd>
+
+        <dt>Course Code</dt>
+        <dd>24ECSE309</dd>
+
+        <dt>Name</dt>
+        <dd>Shivyogi Bendigerimath</dd>
+
+        <dt>SRN</dt>
+        <dd>01FE22BCS108</dd>
+
+        <dt>Course Instructor</dt>
+        <dd>Prakash Hegade</dd>
+
+        <dt>University</dt>
+        <dd>KLE TECHNOLOGICAL UNIVERSITY</dd>
+
+        <dt>Portfolio Topic/Domain</dt>
+        <dd>Oracle Red Bull Racing</dd>
+      </dl>
+    </section>
+
+    <!-- Quote -->
+    <blockquote>
+      "A little more persistence, a little more effort, and what seemed hopeless failure may turn to glorious success" 
+      <footer>— Elbert Hubbard</footer>
+    </blockquote>
+  </main>
+
+  <!-- Floating Buttons -->
+  <button class="toggle-btn" onclick="toggleDarkMode()">
+    <i class="fas fa-moon"></i>
+  </button>
+
+  <button class="back-to-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+    <i class="fas fa-arrow-up"></i>
+  </button>
+
+  <!-- JavaScript -->
+  <script>
+    // Dark mode toggle
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark');
+      const icon = document.querySelector('.toggle-btn i');
+      if (document.body.classList.contains('dark')) {
+        icon.classList.replace('fa-moon', 'fa-sun');
+      } else {
+        icon.classList.replace('fa-sun', 'fa-moon');
+      }
+    }
+
+    // Scroll animations
+    const sections = document.querySelectorAll('.section');
+    
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, {
+      threshold: 0.1
+    });
+
+    sections.forEach(section => {
+      observer.observe(section);
+    });
+
+    // Back to top button visibility
+    const backToTopBtn = document.querySelector('.back-to-top');
+    
+    window.addEventListener('scroll', () => {
+      if (window.pageYOffset > 300) {
+        backToTopBtn.classList.add('visible');
+      } else {
+        backToTopBtn.classList.remove('visible');
+      }
+    });
+
+    // Smooth scrolling for navigation links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        const targetId = this.getAttribute('href');
+        const targetElement = document.querySelector(targetId);
+        
+        if (targetElement) {
+          window.scrollTo({
+            top: targetElement.offsetTop - 80,
+            behavior: 'smooth'
+          });
+        }
+      });
+    });
+  </script>
+</body>
+</html>
