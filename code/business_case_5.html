@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Driver Behavior & Performance Modeling</title>
+    <link rel="stylesheet" href="./business_case.css">
+</head>
+<body>
+    <nav class="nav-container">
+        <div class="logo">Driver Performance System</div>
+        <div class="nav-links">
+            <a href="#pca">PCA</a>
+            <a href="#tsne">t-SNE/UMAP</a>
+            <a href="#rnn">RNN/LSTM</a>
+            <a href="#bayesian">Bayesian Networks</a>
+        </div>
+    </nav>
+
+    <main>
+        <section id="about" class="section visible">
+            <h1>Driver Behavior & Performance Modeling</h1>
+            <p class="intro">Advanced analytics to optimize driver inputs (throttle, brake, gear, steering) for improved consistency and efficiency.</p>
+        </section>
+
+        <div id="pca" class="algorithm-container section visible">
+            <h2>1. Principal Component Analysis (PCA)</h2>
+            
+            <h3>Purpose</h3>
+            <p>Reduce dimensionality of driver input data and highlight main differences in driving style</p>
+            
+            <h3>Implementation</h3>
+            <div class="code-block">
+<pre>import numpy as np
+import pandas as pd
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
+import matplotlib.pyplot as plt
+
+class DrivingStyleAnalyzer:
+    def __init__(self, n_components=3):
+        """Initialize PCA analyzer"""
+        self.scaler = StandardScaler()
+        self.pca = PCA(n_components=n_components)
+        self.n_components = n_components
+    
+    def load_data(self, filepath):
+        """Load and preprocess driver input data"""
+        df = pd.read_csv(filepath)
+        
+        # Feature engineering
+        df['throttle_brake_ratio'] = df['throttle'] / (df['brake'] + 0.001)  # Avoid division by zero
+        df['steering_smoothness'] = df['steering_angle'].rolling(5).std()
+        
+        features = ['throttle', 'brake', 'steering_angle', 
+                   'gear', 'speed', 'throttle_brake_ratio',
+                   'steering_smoothness']
+        
+        return df[features]
+    
+    def analyze(self, df):
+        """Perform PCA on driver inputs"""
+        # Scale data
+        scaled_data = self.scaler.fit_transform(df)
+        
+        # Fit PCA
+        principal_components = self.pca.fit_transform(scaled_data)
+        
+        # Get explained variance
+        explained_var = self.pca.explained_variance_ratio_
+        
+        return principal_components, explained_var
+    
+    def plot_components(self, components, drivers=None):
+        """Visualize principal components"""
+        plt.figure(figsize=(10, 6))
+        
+        if self.n_components >= 2:
+            if drivers is not None:
+                scatter = plt.scatter(components[:, 0], components[:, 1], c=drivers)
+                plt.colorbar(scatter, label='Driver ID')
+            else:
+                plt.scatter(components[:, 0], components[:, 1])
+            
+            plt.xlabel(f'Principal Component 1 ({self.pca.explained_variance_ratio_[0]*100:.1f}%)')
+            plt.ylabel(f'Principal Component 2 ({self.pca.explained_variance_ratio_[1]*100:.1f}%)')
+            plt.title('Driver Style PCA')
+            plt.grid()
+            plt.show()
+    
+    def get_loading_factors(self, feature_names):
+        """Get PCA loading factors for interpretation"""
+        loadings = pd.DataFrame(
+            self.pca.components_.T,
+            columns=[f'PC{i+1}' for i in range(self.n_components)],
+            index=feature_names
+        )
+        return loadings
+
+# Example usage:
+# analyzer = DrivingStyleAnalyzer(n_components=3)
+# driver_data = analyzer.load_data('driver_inputs.csv')
+# components, explained_var = analyzer.analyze(driver_data)
+# analyzer.plot_components(components)
+# loadings = analyzer.get_loading_factors(driver_data.columns)</pre>
+            </div>
+            
+            <div class="business-impact">
+                <h3>Business Impact</h3>
+                <ul>
+                    <li>Identifies key differences between drivers' styles</li>
+                    <li>Helps engineers focus on most significant input variations</li>
+                    <li>Enables targeted coaching for specific input improvements</li>
+                    <li>Reduces analysis complexity from dozens of inputs to 2-3 key dimensions</li>
+                </ul>
+            </div>
+            
+            <div class="data-structures">
+                <h3>Key Data Structures</h3>
+                <ul>
+                    <li><strong>Driver Input Matrix:</strong> 2D array of throttle, brake, steering etc. measurements</li>
+                    <li><strong>Principal Components:</strong> Orthogonal vectors maximizing variance</li>
+                    <li><strong>Loading Factors:</strong> Correlation between original features and components</li>
+                    <li><strong>Explained Variance:</strong> Percentage of total variance captured by each component</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="tsne" class="algorithm-container section">
+            <h2>2. t-SNE / UMAP</h2>
+            
+            <h3>Purpose</h3>
+            <p>Visualize laps or drivers in 2D space to identify clusters and patterns</p>
+            
+            <h3>Implementation</h3>
+            <div class="code-block">
+<pre>import numpy as np
+import pandas as pd
+from sklearn.manifold import TSNE
+import umap
+from sklearn.preprocessing import StandardScaler
+import matplotlib.pyplot as plt
+
+class DrivingPatternVisualizer:
+    def __init__(self, method='tsne', n_components=2):
+        """Initialize visualization method"""
+        self.method = method.lower()
+        self.n_components = n_components
+        self.scaler = StandardScaler()
+        
+        if self.method == 'tsne':
+            self.model = TSNE(n_components=n_components, 
+                            perplexity=30,
+                            random_state=42)
+        else:
+            self.model = umap.UMAP(n_components=n_components,
+                                 n_neighbors=15,
+                                 min_dist=0.1,
+                                 random_state=42)
+    
+    def load_data(self, filepath):
+        """Load and preprocess lap data"""
+        df = pd.read_csv(filepath)
+        
+        # Create lap-level features
+        lap_features = df.groupby('lap_number').agg({
+            'throttle': ['mean', 'std'],
+            'brake': ['mean', 'max'],
+            'steering_angle': ['std', 'skew'],
+            'speed': ['mean', 'max'],
+            'sector_time': 'mean'
+        })
+        
+        # Flatten multi-index columns
+        lap_features.columns = ['_'.join(col).strip() for col in lap_features.columns.values]
+        
+        return lap_features
+    
+    def visualize(self, df):
+        """Perform dimensionality reduction and visualization"""
+        # Scale data
+        scaled_data = self.scaler.fit_transform(df)
+        
+        # Fit model
+        if self.method == 'tsne':
+            embeddings = self.model.fit_transform(scaled_data)
+        else:
+            embeddings = self.model.fit_transform(scaled_data)
+        
+        # Plot results
+        plt.figure(figsize=(10, 6))
+        scatter = plt.scatter(embeddings[:, 0], embeddings[:, 1], 
+                            c=df.index, cmap='viridis')
+        plt.colorbar(scatter, label='Lap Number')
+        plt.title(f'{self.method.upper()} Visualization of Lap Patterns')
+        plt.xlabel('Component 1')
+        plt.ylabel('Component 2')
+        plt.show()
+        
+        return embeddings
+    
+    def analyze_clusters(self, embeddings, df, n_clusters=3):
+        """Identify and analyze clusters in the visualization"""
+        from sklearn.cluster import KMeans
+        
+        # Perform clustering
+        kmeans = KMeans(n_clusters=n_clusters, random_state=42)
+        clusters = kmeans.fit_predict(embeddings)
+        
+        # Add cluster labels to original data
+        df['cluster'] = clusters
+        
+        # Analyze cluster characteristics
+        cluster_stats = df.groupby('cluster').mean()
+        
+        return clusters, cluster_stats
+
+# Example usage:
+# visualizer = DrivingPatternVisualizer(method='umap')
+# lap_data = visualizer.load_data('lap_data.csv')
+# embeddings = visualizer.visualize(lap_data)
+# clusters, stats = visualizer.analyze_clusters(embeddings, lap_data)</pre>
+            </div>
+            
+            <div class="business-impact">
+                <h3>Business Impact</h3>
+                <ul>
+                    <li>Reveals hidden patterns in driver performance across laps</li>
+                    <li>Identifies consistency issues or fatigue patterns</li>
+                    <li>Helps compare multiple drivers' styles visually</li>
+                    <li>Enables detection of anomalous laps that need investigation</li>
+                </ul>
+            </div>
+            
+            <div class="data-structures">
+                <h3>Key Data Structures</h3>
+                <ul>
+                    <li><strong>Lap Feature Matrix:</strong> Aggregated statistics per lap</li>
+                    <li><strong>Embeddings:</strong> 2D/3D coordinates from dimensionality reduction</li>
+                    <li><strong>Distance Matrices:</strong> Pairwise similarities between laps</li>
+                    <li><strong>Cluster Assignments:</strong> Groupings of similar laps</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="rnn" class="algorithm-container section">
+            <h2>3. RNN / LSTM Networks</h2>
+            
+            <h3>Purpose</h3>
+            <p>Analyze sequences of driver inputs to detect patterns, predict performance, or identify fatigue</p>
+            
+            <h3>Implementation</h3>
+            <div class="code-block">
+<pre>import numpy as np
+import pandas as pd
+from sklearn.preprocessing import MinMaxScaler
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import LSTM, Dense, Dropout
+from tensorflow.keras.callbacks import EarlyStopping
+from tensorflow.keras.optimizers import Adam
+
+class DriverInputAnalyzer:
+    def __init__(self, time_steps=50, n_features=5):
+        """Initialize LSTM model for driver input analysis"""
+        self.time_steps = time_steps
+        self.n_features = n_features
+        self.scaler = MinMaxScaler()
+        self.model = self._build_model()
+    
+    def _build_model(self):
+        """Build LSTM network architecture"""
+        model = Sequential([
+            LSTM(64, input_shape=(self.time_steps, self.n_features), 
+            Dropout(0.2),
+            Dense(32, activation='relu'),
+            Dense(1)  # Predicts next sector time or fatigue score
+        ])
+        
+        model.compile(optimizer=Adam(learning_rate=0.001),
+                     loss='mse',
+                     metrics=['mae'])
+        return model
+    
+    def prepare_data(self, df, target_col='sector_time'):
+        """Convert time-series data into supervised learning format"""
+        # Select features and target
+        features = ['throttle', 'brake', 'steering_angle', 'gear', 'speed']
+        target = df[target_col]
+        
+        # Scale data
+        scaled_features = self.scaler.fit_transform(df[features])
+        scaled_target = target.values.reshape(-1, 1)
+        
+        # Create sequences
+        X, y = [], []
+        for i in range(len(scaled_features) - self.time_steps):
+            X.append(scaled_features[i:i+self.time_steps])
+            y.append(scaled_target[i+self.time_steps])
+        
+        return np.array(X), np.array(y)
+    
+    def train(self, X_train, y_train, X_val, y_val, epochs=100):
+        """Train the LSTM model"""
+        early_stop = EarlyStopping(monitor='val_loss', patience=10)
+        
+        history = self.model.fit(
+            X_train, y_train,
+            validation_data=(X_val, y_val),
+            epochs=epochs,
+            batch_size=32,
+            callbacks=[early_stop],
+            verbose=1
+        )
+        return history
+    
+    def predict_performance(self, sequence):
+        """Predict performance from driver input sequence"""
+        # Scale input sequence
+        scaled_seq = self.scaler.transform(sequence)
+        
+        # Reshape for LSTM (samples, time steps, features)
+        input_seq = scaled_seq[-self.time_steps:].reshape(1, self.time_steps, self.n_features)
+        
+        # Predict
+        return self.model.predict(input_seq)[0][0]
+    
+    def detect_fatigue(self, sequence):
+        """Detect fatigue patterns in driver inputs"""
+        # Similar to performance prediction but trained on different target
+        # (e.g., expert-labeled fatigue scores or deviation from baseline)
+        return self.predict_performance(sequence)
+
+# Example usage:
+# analyzer = DriverInputAnalyzer(time_steps=50, n_features=5)
+# df = pd.read_csv('driver_telemetry.csv')
+# X, y = analyzer.prepare_data(df, target_col='sector_time')
+# X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+# history = analyzer.train(X_train, y_train, X_test, y_test)
+# new_sequence = df.iloc[-50:][['throttle', 'brake', 'steering_angle', 'gear', 'speed']]
+# pred_time = analyzer.predict_performance(new_sequence)</pre>
+            </div>
+            
+            <div class="business-impact">
+                <h3>Business Impact</h3>
+                <ul>
+                    <li>Predicts sector times based on real-time driver inputs</li>
+                    <li>Detects fatigue or concentration lapses during long stints</li>
+                    <li>Provides feedback for driver coaching and training</li>
+                    <li>Enables real-time performance monitoring during sessions</li>
+                </ul>
+            </div>
+            
+            <div class="data-structures">
+                <h3>Key Data Structures</h3>
+                <ul>
+                    <li><strong>Time-series Sequences:</strong> 3D arrays (samples, time steps, features)</li>
+                    <li><strong>LSTM Cells:</strong> Memory units maintaining long-term dependencies</li>
+                    <li><strong>Attention Weights:</strong> (Optional) Importance scores for different time steps</li>
+                    <li><strong>Performance Targets:</strong> Sector times or other metrics to predict</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="bayesian" class="algorithm-container section">
+            <h2>4. Bayesian Networks</h2>
+            
+            <h3>Purpose</h3>
+            <p>Probabilistic inference on driver decisions under uncertain conditions</p>
+            
+            <h3>Implementation</h3>
+            <div class="code-block">
+<pre>import pandas as pd
+import numpy as np
+from pgmpy.models import BayesianNetwork
+from pgmpy.estimators import MaximumLikelihoodEstimator
+from pgmpy.inference import VariableElimination
+import matplotlib.pyplot as plt
+import networkx as nx
+
+class DriverDecisionModel:
+    def __init__(self):
+        """Initialize Bayesian network for driver decisions"""
+        self.model = None
+        self.inference = None
+    
+    def define_structure(self):
+        """Define network structure based on domain knowledge"""
+        # Create Bayesian Network structure
+        model = BayesianNetwork([
+            ('weather', 'braking_pattern'),
+            ('track_condition', 'braking_pattern'),
+            ('tire_wear', 'throttle_application'),
+            ('fuel_load', 'throttle_application'),
+            ('braking_pattern', 'sector_time'),
+            ('throttle_application', 'sector_time'),
+            ('driver_fatigue', 'steering_consistency'),
+            ('steering_consistency', 'sector_time')
+        ])
+        
+        self.model = model
+        return model
+    
+    def fit_model(self, data):
+        """Estimate CPDs from data"""
+        # Discretize continuous variables
+        data['sector_time'] = pd.cut(data['sector_time'], bins=3, 
+                                    labels=['fast', 'average', 'slow'])
+        data['throttle_application'] = pd.cut(data['throttle_mean'], bins=2,
+                                            labels=['conservative', 'aggressive'])
+        
+        # Fit model to data
+        self.model.fit(data, estimator=MaximumLikelihoodEstimator)
+        self.inference = VariableElimination(self.model)
+        
+        return self.model
+    
+    def visualize_network(self):
+        """Draw the Bayesian network structure"""
+        plt.figure(figsize=(10, 6))
+        pos = nx.spring_layout(self.model)
+        nx.draw(self.model, pos=pos, with_labels=True, 
+               node_size=2000, node_color='skyblue', 
+               font_size=10, font_weight='bold')
+        plt.title("Driver Decision Bayesian Network")
+        plt.show()
+    
+    def predict_performance(self, evidence):
+        """Predict sector time given evidence"""
+        result = self.inference.query(variables=['sector_time'], 
+                                    evidence=evidence)
+        return result
+    
+    def analyze_decision_factors(self):
+        """Analyze the strength of different factors on sector time"""
+        # Perform sensitivity analysis
+        factors = ['weather', 'track_condition', 'tire_wear', 
+                  'fuel_load', 'driver_fatigue']
+        
+        sensitivities = {}
+        for factor in factors:
+            # Compute mutual information between factor and sector_time
+            mi = self.model.get_independencies().mutual_information(
+                ['sector_time'], [factor])
+            sensitivities[factor] = mi
+        
+        return pd.Series(sensitivities).sort_values(ascending=False)
+
+# Example usage:
+# model = DriverDecisionModel()
+# structure = model.define_structure()
+# data = pd.read_csv('driver_conditions.csv')
+# fitted_model = model.fit_model(data)
+# model.visualize_network()
+# evidence = {'weather': 'wet', 'tire_wear': 'high', 'driver_fatigue': 'low'}
+# performance_pred = model.predict_performance(evidence)
+# sensitivities = model.analyze_decision_factors()</pre>
+            </div>
+            
+            <div class="business-impact">
+                <h3>Business Impact</h3>
+                <ul>
+                    <li>Quantifies impact of various factors on performance</li>
+                    <li>Provides probabilistic predictions under uncertainty</li>
+                    <li>Helps optimize strategy decisions during races</li>
+                    <li>Identifies most influential factors for targeted improvements</li>
+                </ul>
+            </div>
+            
+            <div class="data-structures">
+                <h3>Key Data Structures</h3>
+                <ul>
+                    <li><strong>Directed Acyclic Graph:</strong> Network structure of variables</li>
+                    <li><strong>Conditional Probability Tables:</strong> Probability distributions for each node</li>
+                    <li><strong>Evidence Sets:</strong> Observed values for inference</li>
+                    <li><strong>Discretized Variables:</strong> Categorical versions of continuous measurements</li>
+                </ul>
+            </div>
+        </div>
+
+        <section id="system-integration" class="section">
+            <h2>System Integration and Workflow</h2>
+            
+            <h3>Driver Performance Pipeline</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Stage</th>
+                        <th>Components</th>
+                        <th>Technologies</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Data Collection</td>
+                        <td>Telemetry streaming, biometric data</td>
+                        <td>CAN bus, OBD-II, wearables</td>
+                    </tr>
+                    <tr>
+                        <td>Feature Extraction</td>
+                        <td>Input statistics, lap aggregations</td>
+                        <td>Pandas, NumPy, Dask</td>
+                    </tr>
+                    <tr>
+                        <td>Model Training</td>
+                        <td>Style analysis, performance prediction</td>
+                        <td>Scikit-learn, TensorFlow, PyMC3</td>
+                    </tr>
+                    <tr>
+                        <td>Visualization</td>
+                        <td>Driver dashboards, coach interfaces</td>
+                        <td>Plotly, Dash, Tableau</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3>Data Requirements</h3>
+            <div class="data-structures">
+                <ul>
+                    <li><strong>Telemetry Data:</strong> Throttle, brake, steering inputs at high frequency</li>
+                    <li><strong>Lap Timing:</strong> Sector and lap times with microsecond precision</li>
+                    <li><strong>Environmental Data:</strong> Track conditions, weather, temperature</li>
+                    <li><strong>Biometric Data:</strong> (Optional) Heart rate, G-force measurements</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <button class="back-to-top" title="Back to top">↑</button>
+
+    <script>
+        // Scroll to reveal animations
+        document.addEventListener('DOMContentLoaded', function() {
+            const sections = document.querySelectorAll('.section');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, {threshold: 0.1});
+            
+            sections.forEach(section => {
+                observer.observe(section);
+            });
+            
+            // Back to top button
+            const backToTopButton = document.querySelector('.back-to-top');
+            
+            window.addEventListener('scroll', () => {
+                if (window.pageYOffset > 300) {
+                    backToTopButton.classList.add('visible');
+                } else {
+                    backToTopButton.classList.remove('visible');
+                }
+            });
+            
+            backToTopButton.addEventListener('click', () => {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
+            
+            // Dark mode toggle
+            const darkModeToggle = document.createElement('button');
+            darkModeToggle.textContent = '🌓';
+            darkModeToggle.style.position = 'fixed';
+            darkModeToggle.style.bottom = '2rem';
+            darkModeToggle.style.right = '2rem';
+            darkModeToggle.style.padding = '0.8rem';
+            darkModeToggle.style.background = 'var(--primary)';
+            darkModeToggle.style.color = '#fff';
+            darkModeToggle.style.border = 'none';
+            darkModeToggle.style.borderRadius = '50%';
+            darkModeToggle.style.cursor = 'pointer';
+            darkModeToggle.style.zIndex = '999';
+            darkModeToggle.style.transition = 'all 0.3s ease';
+            darkModeToggle.addEventListener('click', () => {
+                document.body.classList.toggle('dark');
+            });
+            document.body.appendChild(darkModeToggle);
+        });
+    </script>
+</body>
+</html>

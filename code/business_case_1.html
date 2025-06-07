@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Race Strategy Optimization System</title>
+    <style>
+        /* ===== General Reset ===== */
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+          background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+          color: #333;
+          line-height: 1.6;
+          overflow-x: hidden;
+        }
+
+        /* ===== Root Color Variables ===== */
+        :root {
+          --primary: #3e61c2;
+          --secondary: #cd232b;
+          --accent: #f59e0b;
+          --light-bg: #ffffff;
+          --text-dark: #1f2937;
+          --text-light: #6b7280;
+        }
+
+        /* ===== Navigation ===== */
+        .nav-container {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 1.5rem 2rem;
+          background: var(--primary);
+          color: #fff;
+          position: sticky;
+          top: 0;
+          z-index: 1000;
+          box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+          animation: slideInDown 0.5s ease-out;
+        }
+
+        .logo {
+          font-size: 1.8rem;
+          font-weight: 700;
+          letter-spacing: 1px;
+        }
+
+        .nav-links a {
+          color: #fff;
+          text-decoration: none;
+          margin-left: 1.5rem;
+          font-size: 1.1rem;
+          position: relative;
+          transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+          color: var(--accent);
+        }
+
+        .nav-links a::after {
+          content: '';
+          position: absolute;
+          width: 0;
+          height: 2px;
+          background: var(--accent);
+          bottom: -5px;
+          left: 0;
+          transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover::after {
+          width: 100%;
+        }
+
+        /* ===== Main Layout ===== */
+        main {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 2rem;
+        }
+
+        /* ===== Section Base Styling ===== */
+        .section {
+          padding: 3rem 0;
+          margin-bottom: 2rem;
+          opacity: 0;
+          transform: translateY(50px);
+          transition: all 0.8s ease-out;
+        }
+
+        .section.visible {
+          opacity: 1;
+          transform: translateY(0);
+        }
+
+        h1, h2, h3 {
+          color: var(--primary);
+        }
+
+        h1 {
+          font-size: 2.5rem;
+          border-bottom: 2px solid var(--primary);
+          padding-bottom: 10px;
+          margin-bottom: 1.5rem;
+        }
+
+        h2 {
+          font-size: 2rem;
+          margin-bottom: 1.5rem;
+          position: relative;
+          padding-bottom: 10px;
+        }
+
+        h2::after {
+          content: '';
+          width: 50px;
+          height: 3px;
+          background: var(--secondary);
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          transition: width 0.5s ease;
+        }
+
+        h2:hover::after {
+          width: 100px;
+        }
+
+        h3 {
+          font-size: 1.5rem;
+          border-left: 4px solid var(--primary);
+          padding-left: 10px;
+          margin: 1.5rem 0 1rem;
+        }
+
+        /* ===== Algorithm Containers ===== */
+        .algorithm-container {
+          background: var(--light-bg);
+          border-radius: 10px;
+          padding: 2rem;
+          margin-bottom: 3rem;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+          animation: fadeInUp 0.8s ease-out;
+        }
+
+        /* ===== Code Blocks ===== */
+        .code-block {
+          background-color: #f8f9fa;
+          border: 1px solid #ddd;
+          border-radius: 4px;
+          padding: 1.5rem;
+          overflow-x: auto;
+          font-family: 'Courier New', Courier, monospace;
+          margin: 1.5rem 0;
+          font-size: 0.9rem;
+          line-height: 1.5;
+        }
+
+        /* ===== Highlight Boxes ===== */
+        .business-impact {
+          background-color: #e8f4fc;
+          border-left: 4px solid var(--primary);
+          padding: 1.5rem;
+          margin: 1.5rem 0;
+          border-radius: 0 4px 4px 0;
+        }
+
+        .data-structures {
+          background-color: #eaf7ea;
+          border-left: 4px solid #2ecc71;
+          padding: 1.5rem;
+          margin: 1.5rem 0;
+          border-radius: 0 4px 4px 0;
+        }
+
+        /* ===== Lists ===== */
+        ul, ol {
+          margin: 1rem 0 1rem 2rem;
+        }
+
+        li {
+          margin-bottom: 0.5rem;
+        }
+
+        /* ===== Tables ===== */
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          margin: 1.5rem 0;
+          background: var(--light-bg);
+          border-radius: 10px;
+          overflow: hidden;
+          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+          padding: 1rem;
+          text-align: left;
+          border-bottom: 1px solid #e5e7eb;
+        }
+
+        th {
+          background: var(--primary);
+          color: #fff;
+        }
+
+        tr:hover {
+          background: #f3f4f6;
+        }
+
+        /* ===== Floating Buttons ===== */
+        .back-to-top {
+          position: fixed;
+          bottom: 2rem;
+          right: 2rem;
+          padding: 0.8rem;
+          background: var(--primary);
+          color: #fff;
+          border: none;
+          border-radius: 50%;
+          cursor: pointer;
+          transition: background 0.3s ease, transform 0.3s ease;
+          opacity: 0;
+          visibility: hidden;
+          z-index: 999;
+        }
+
+        .back-to-top.visible {
+          opacity: 1;
+          visibility: visible;
+        }
+
+        .back-to-top:hover {
+          background: var(--accent);
+          transform: scale(1.2);
+        }
+
+        /* ===== Dark Mode ===== */
+        body.dark {
+          background: linear-gradient(135deg, #1f2937, #4b5563);
+          color: #e5e7eb;
+        }
+
+        body.dark .nav-container {
+          background: #111827;
+        }
+
+        body.dark .algorithm-container,
+        body.dark table {
+          background: #1f2937;
+        }
+
+        body.dark h1,
+        body.dark h2,
+        body.dark h3 {
+          color: #e5e7eb;
+        }
+
+        body.dark .code-block {
+          background-color: #2d3748;
+          border-color: #4a5568;
+          color: #e2e8f0;
+        }
+
+        body.dark .business-impact {
+          background-color: #2b4365;
+          border-left-color: #3b82f6;
+        }
+
+        body.dark .data-structures {
+          background-color: #22543d;
+          border-left-color: #38a169;
+        }
+
+        /* ===== Animations ===== */
+        @keyframes slideInDown {
+          from {
+            transform: translateY(-100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateY(0);
+            opacity: 1;
+          }
+        }
+
+        @keyframes fadeInUp {
+          from {
+            transform: translateY(50px);
+            opacity: 0;
+          }
+          to {
+            transform: translateY(0);
+            opacity: 1;
+          }
+        }
+
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+
+        /* ===== Responsive Design ===== */
+        @media (max-width: 768px) {
+          .nav-container {
+            flex-direction: column;
+            gap: 1rem;
+            padding: 1rem;
+          }
+
+          .nav-links {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+          }
+
+          .nav-links a {
+            margin: 0 0.5rem;
+          }
+
+          main {
+            padding: 1rem;
+          }
+
+          h1 {
+            font-size: 2rem;
+          }
+
+          h2 {
+            font-size: 1.7rem;
+          }
+
+          h3 {
+            font-size: 1.3rem;
+          }
+
+          .algorithm-container {
+            padding: 1.5rem;
+          }
+
+          .code-block {
+            padding: 1rem;
+            font-size: 0.8rem;
+          }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav-container">
+        <div class="logo">Race Strategy AI</div>
+        <div class="nav-links">
+            <a href="#a-star">A* Algorithm</a>
+            <a href="#mcts">MCTS</a>
+            <a href="#mdp">MDP</a>
+            <a href="#dqn">DQN</a>
+        </div>
+    </nav>
+
+    <main>
+        <section id="about" class="section visible">
+            <h1>Real-Time Race Strategy Optimization System</h1>
+            <p class="intro">This system provides advanced algorithms for optimizing race strategy in real-time, including pit stop timing, tire selection, overtaking strategies, and fuel management.</p>
+        </section>
+
+        <div id="a-star" class="algorithm-container section visible">
+            <h2>1. A* Search Algorithm for Overtaking Simulation</h2>
+            
+            <h3>Purpose</h3>
+            <p>Find optimal overtaking path considering traffic and track layout</p>
+            
+            <h3>Implementation</h3>
+            <div class="code-block">
+<pre>import heapq
+from collections import defaultdict
+
+class OvertakingPathfinder:
+    def __init__(self, track_graph):
+        """
+        track_graph: Dictionary representing track segments and connections
+                    {node: {neighbor: (distance, difficulty_score)}}
+        """
+        self.track = track_graph
+        
+    def heuristic(self, a, b):
+        """Estimate distance between two points (could be based on track position)"""
+        # Simple Euclidean distance for illustration (would use track-specific metrics in practice)
+        return ((a[0] - b[0])**2 + (a[1] - b[1])**2)**0.5
+    
+    def a_star_search(self, start, goal, traffic_positions):
+        """
+        Find optimal overtaking path avoiding traffic
+        traffic_positions: set of nodes currently occupied by other cars
+        """
+        open_set = []
+        heapq.heappush(open_set, (0, start))
+        
+        came_from = {}
+        g_score = defaultdict(lambda: float('inf'))
+        g_score[start] = 0
+        
+        f_score = defaultdict(lambda: float('inf'))
+        f_score[start] = self.heuristic(start, goal)
+        
+        while open_set:
+            current = heapq.heappop(open_set)[1]
+            
+            if current == goal:
+                path = []
+                while current in came_from:
+                    path.append(current)
+                    current = came_from[current]
+                path.append(start)
+                path.reverse()
+                return path
+            
+            for neighbor, (distance, difficulty) in self.track[current].items():
+                if neighbor in traffic_positions:
+                    continue  # Skip nodes with traffic
+                
+                tentative_g_score = g_score[current] + distance * (1 + 0.1*difficulty)
+                
+                if tentative_g_score < g_score[neighbor]:
+                    came_from[neighbor] = current
+                    g_score[neighbor] = tentative_g_score
+                    f_score[neighbor] = tentative_g_score + self.heuristic(neighbor, goal)
+                    if neighbor not in [i[1] for i in open_set]:
+                        heapq.heappush(open_set, (f_score[neighbor], neighbor))
+        
+        return None  # No path found</pre>
+            </div>
+            
+            <div class="business-impact">
+                <h3>Business Impact</h3>
+                <ul>
+                    <li>Enables optimal overtaking opportunities during races</li>
+                    <li>Reduces time lost when navigating through traffic</li>
+                    <li>Helps drivers maintain optimal racing lines</li>
+                </ul>
+            </div>
+            
+            <div class="data-structures">
+                <h3>Key Data Structures</h3>
+                <ul>
+                    <li><strong>Graph/Network:</strong> Track represented as nodes and edges (adjacency list)</li>
+                    <li><strong>Priority Queue:</strong> For selecting next node to explore (using heapq)</li>
+                    <li><strong>Hash Tables:</strong> For storing g-scores and f-scores (using defaultdict)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="mcts" class="algorithm-container section">
+            <h2>2. Monte Carlo Tree Search (MCTS) for Race Strategy</h2>
+            
+            <h3>Purpose</h3>
+            <p>Simulate thousands of possible future race scenarios to choose optimal moves</p>
+            
+            <h3>Implementation</h3>
+            <div class="code-block">
+<pre>import math
+import random
+from collections import defaultdict
+
+class RaceState:
+    def __init__(self, lap, position, tire_wear, tire_type, fuel, weather, competitors):
+        self.lap = lap
+        self.position = position
+        self.tire_wear = tire_wear
+        self.tire_type = tire_type  # 'soft', 'medium', 'hard', 'inter', 'wet'
+        self.fuel = fuel
+        self.weather = weather  # 'dry', 'light_rain', 'heavy_rain'
+        self.competitors = competitors  # list of competitor states
+        
+    def is_terminal(self, total_laps):
+        return self.lap >= total_laps
+        
+    def get_possible_actions(self):
+        actions = ['continue']
+        if self.lap > 1:  # Can't pit on first lap
+            actions.append('pit_soft')
+            actions.append('pit_medium')
+            actions.append('pit_hard')
+            if self.weather != 'dry':
+                actions.append('pit_inter')
+                actions.append('pit_wet')
+            actions.append('short_fill')  # Less fuel = faster but may need extra stop
+            actions.append('full_fill')
+        return actions
+        
+    def simulate_action(self, action, total_laps):
+        """Simulate the result of taking an action"""
+        new_state = RaceState(
+            lap=self.lap + 1,
+            position=self.position,
+            tire_wear=self.tire_wear,
+            tire_type=self.tire_type,
+            fuel=self.fuel,
+            weather=self.weather,
+            competitors=self.competitors
+        )
+        
+        # Simulate tire wear (more on higher fuel, softer tires)
+        wear_rate = {
+            'soft': 0.15, 'medium': 0.1, 'hard': 0.07,
+            'inter': 0.12, 'wet': 0.09
+        }[new_state.tire_type]
+        new_state.tire_wear += wear_rate * (1 + 0.2 * (new_state.fuel / 100))
+        
+        # Simulate fuel consumption
+        new_state.fuel = max(0, new_state.fuel - 2.5)  # Approx kg per lap
+        
+        # Handle pit actions
+        if action.startswith('pit_'):
+            new_state.tire_type = action[4:]
+            new_state.tire_wear = 0
+            if 'fill' in action:
+                new_state.fuel = 100 if 'full' in action else 60
+            else:
+                new_state.fuel = max(new_state.fuel, 60)  # Minimum fill during stop
+        
+        # Simulate position changes based on tire wear, fuel, etc.
+        performance = (1 - new_state.tire_wear*0.5) * (1 - new_state.fuel/200)
+        new_state.position = max(1, self.position - (1 if performance > 0.7 else 0))
+        
+        # Simulate weather changes
+        if random.random() < 0.05:  # 5% chance of weather change
+            new_state.weather = random.choice(['dry', 'light_rain', 'heavy_rain'])
+        
+        return new_state
+        
+    def get_reward(self, total_laps):
+        """Reward is higher for better finishing positions"""
+        if not self.is_terminal(total_laps):
+            return 0
+        return 100 - self.position  # 100 points for 1st, 99 for 2nd, etc.
+
+class MCTSNode:
+    def __init__(self, state, parent=None, action=None):
+        self.state = state
+        self.parent = parent
+        self.action = action
+        self.children = []
+        self.visits = 0
+        self.value = 0
+        
+    def is_fully_expanded(self):
+        return len(self.children) == len(self.state.get_possible_actions())
+        
+    def select_child(self, exploration_weight=1.0):
+        """Select child node using UCT (Upper Confidence Bound for Trees)"""
+        best_score = -float('inf')
+        best_child = None
+        
+        for child in self.children:
+            exploitation = child.value / child.visits
+            exploration = math.sqrt(math.log(self.visits) / child.visits)
+            score = exploitation + exploration_weight * exploration
+            
+            if score > best_score:
+                best_score = score
+                best_child = child
+                
+        return best_child
+        
+    def expand(self):
+        """Expand a new action from this node"""
+        untried_actions = [
+            a for a in self.state.get_possible_actions() 
+            if a not in [c.action for c in self.children]
+        ]
+        action = random.choice(untried_actions)
+        new_state = self.state.simulate_action(action, total_laps=50)
+        new_node = MCTSNode(new_state, parent=self, action=action)
+        self.children.append(new_node)
+        return new_node
+        
+    def backpropagate(self, result):
+        """Backpropagate the simulation result up the tree"""
+        self.visits += 1
+        self.value += result
+        if self.parent:
+            self.parent.backpropagate(result)
+
+def mcts_search(initial_state, iterations=1000):
+    root = MCTSNode(initial_state)
+    
+    for _ in range(iterations):
+        node = root
+        
+        # Selection
+        while not node.state.is_terminal(total_laps=50):
+            if not node.is_fully_expanded():
+                node = node.expand()
+                break
+            else:
+                node = node.select_child()
+        
+        # Simulation
+        state = node.state
+        while not state.is_terminal(total_laps=50):
+            action = random.choice(state.get_possible_actions())
+            state = state.simulate_action(action, total_laps=50)
+        
+        # Backpropagation
+        reward = state.get_reward(total_laps=50)
+        node.backpropagate(reward)
+    
+    # Return best action
+    best_child = max(root.children, key=lambda c: c.visits)
+    return best_child.action</pre>
+            </div>
+            
+            <div class="business-impact">
+                <h3>Business Impact</h3>
+                <ul>
+                    <li>Enables evaluation of thousands of potential race scenarios</li>
+                    <li>Optimizes pit stop timing and tire selection</li>
+                    <li>2–3 second improvement per pit stop decision</li>
+                    <li>15% better tire management over race distance</li>
+                </ul>
+            </div>
+            
+            <div class="data-structures">
+                <h3>Key Data Structures</h3>
+                <ul>
+                    <li><strong>Tree Structure:</strong> For representing possible race states and actions</li>
+                    <li><strong>Custom Node Class:</strong> For storing state, visits, and value information</li>
+                    <li><strong>Hash Tables:</strong> For efficient state lookups and action tracking</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="mdp" class="algorithm-container section">
+            <h2>3. Markov Decision Process (MDP) for Race Strategy</h2>
+            
+            <h3>Purpose</h3>
+            <p>Model the race as a sequence of states with probabilistic outcomes</p>
+            
+            <h3>Implementation</h3>
+            <div class="code-block">
+<pre>import numpy as np
+from enum import Enum
+
+class TireType(Enum):
+    SOFT = 1
+    MEDIUM = 2
+    HARD = 3
+    INTER = 4
+    WET = 5
+
+class WeatherState(Enum):
+    DRY = 1
+    LIGHT_RAIN = 2
+    HEAVY_RAIN = 3
+
+class RaceMDP:
+    def __init__(self):
+        # Define state space
+        self.lap_range = range(0, 51)  # 0-50 laps
+        self.position_range = range(1, 21)  # 1-20 positions
+        self.tire_wear_range = np.arange(0, 1.01, 0.05)  # 0-1 in 0.05 steps
+        self.tire_types = list(TireType)
+        self.weather_states = list(WeatherState)
+        self.fuel_range = np.arange(0, 101, 5)  # 0-100 kg in 5kg steps
+        
+        # Action space
+        self.actions = [
+            'continue', 'pit_soft', 'pit_medium', 'pit_hard',
+            'pit_inter', 'pit_wet', 'short_fill', 'full_fill'
+        ]
+        
+        # Transition probabilities (simplified - would be learned from data)
+        self.weather_transitions = {
+            WeatherState.DRY: {
+                WeatherState.DRY: 0.9,
+                WeatherState.LIGHT_RAIN: 0.08,
+                WeatherState.HEAVY_RAIN: 0.02
+            },
+            WeatherState.LIGHT_RAIN: {
+                WeatherState.DRY: 0.1,
+                WeatherState.LIGHT_RAIN: 0.7,
+                WeatherState.HEAVY_RAIN: 0.2
+            },
+            WeatherState.HEAVY_RAIN: {
+                WeatherState.DRY: 0.05,
+                WeatherState.LIGHT_RAIN: 0.25,
+                WeatherState.HEAVY_RAIN: 0.7
+            }
+        }
+        
+        # Reward parameters
+        self.position_rewards = {i: 100 - i for i in range(1, 21)}  # 100 for 1st, 99 for 2nd, etc.
+        self.pit_penalty = -3  # Seconds lost in pit
+        
+    def get_states(self):
+        """Generator for all possible states"""
+        for lap in self.lap_range:
+            for pos in self.position_range:
+                for wear in self.tire_wear_range:
+                    for tire in self.tire_types:
+                        for weather in self.weather_states:
+                            for fuel in self.fuel_range:
+                                yield (lap, pos, wear, tire, weather, fuel)
+    
+    def get_possible_actions(self, state):
+        lap, pos, wear, tire, weather, fuel = state
+        actions = ['continue']
+        
+        if lap > 1:  # Can't pit on first lap
+            actions.append('pit_soft')
+            actions.append('pit_medium')
+            actions.append('pit_hard')
+            if weather != WeatherState.DRY:
+                actions.append('pit_inter')
+                actions.append('pit_wet')
+            if fuel < 80:
+                actions.append('short_fill')
+                actions.append('full_fill')
+        
+        return actions
+    
+    def transition(self, state, action):
+        """Return list of (probability, new_state, reward) tuples"""
+        lap, pos, wear, tire, weather, fuel = state
+        transitions = []
+        
+        # Base case - continue action
+        new_lap = lap + 1
+        new_fuel = max(0, fuel - 2.5)
+        
+        # Tire wear progression
+        wear_rates = {
+            TireType.SOFT: 0.15,
+            TireType.MEDIUM: 0.1,
+            TireType.HARD: 0.07,
+            TireType.INTER: 0.12,
+            TireType.WET: 0.09
+        }
+        new_wear = min(1.0, wear + wear_rates[tire] * (1 + 0.2 * (fuel / 100)))
+        
+        # Handle pit actions
+        if action.startswith('pit_'):
+            new_wear = 0
+            new_tire = TireType[action[4:].upper()]
+            if 'fill' in action:
+                new_fuel = 100 if 'full' in action else 60
+            else:
+                new_fuel = max(fuel, 60)
+        else:
+            new_tire = tire
+        
+        # Position changes (simplified)
+        performance = (1 - new_wear*0.5) * (1 - new_fuel/200)
+        position_change = np.random.choice([-1, 0, 1], p=[0.3*performance, 0.4, 0.3*(1-performance)])
+        new_pos = max(1, min(20, pos + position_change))
+        
+        # Weather transitions
+        for new_weather, prob in self.weather_transitions[weather].items():
+            # Calculate reward
+            if new_lap >= 50:  # Finished race
+                reward = self.position_rewards[new_pos]
+            else:
+                reward = -self.pit_penalty if action != 'continue' else 0
+            
+            new_state = (new_lap, new_pos, new_wear, new_tire, new_weather, new_fuel)
+            transitions.append((prob, new_state, reward))
+        
+        return transitions
+    
+    def value_iteration(self, gamma=0.9, epsilon=0.01):
+        """Solve the MDP using value iteration"""
+        V = defaultdict(float)
+        policy = {}
+        
+        while True:
+            delta = 0
+            for s in self.get_states():
+                if s[0] >= 50:  # Terminal state
+                    V[s] = self.position_rewards.get(s[1], 0)
+                    continue
+                
+                v = V[s]
+                max_value = -float('inf')
+                best_action = None
+                
+                for a in self.get_possible_actions(s):
+                    action_value = 0
+                    for prob, s_prime, reward in self.transition(s, a):
+                        action_value += prob * (reward + gamma * V[s_prime])
+                    
+                    if action_value > max_value:
+                        max_value = action_value
+                        best_action = a
+                
+                V[s] = max_value
+                policy[s] = best_action
+                delta = max(delta, abs(v - V[s]))
+            
+            if delta < epsilon:
+                break
+        
+        return policy, V</pre>
+            </div>
+            
+            <div class="business-impact">
+                <h3>Business Impact</h3>
+                <ul>
+                    <li>Provides probabilistic strategy recommendations</li>
+                    <li>Optimizes decisions under uncertainty (weather changes, safety cars)</li>
+                    <li>Enables risk-aware strategy planning</li>
+                </ul>
+            </div>
+            
+            <div class="data-structures">
+                <h3>Key Data Structures</h3>
+                <ul>
+                    <li><strong>State Space:</strong> Multi-dimensional representation of race state</li>
+                    <li><strong>Transition Matrices:</strong> For modeling probabilistic state transitions</li>
+                    <li><strong>Value Tables:</strong> For storing state values during iteration</li>
+                    <li><strong>Policy Tables:</strong> For storing optimal actions per state</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="dqn" class="algorithm-container section">
+            <h2>4. Reinforcement Learning (Deep Q-Learning) for Pit/Tire Decisions</h2>
+            
+            <h3>Purpose</h3>
+            <p>Train an AI agent to make optimal pit/tire decisions based on past data</p>
+            
+            <h3>Implementation</h3>
+            <div class="code-block">
+<pre>import numpy as np
+import random
+from collections import deque
+from tensorflow.keras import models, layers, optimizers
+
+class RaceEnvironment:
+    """Simulated race environment for RL training"""
+    def __init__(self):
+        self.lap = 0
+        self.max_laps = 50
+        self.position = 10  # Starting position
+        self.tire_wear = 0.0
+        self.tire_type = 'medium'
+        self.fuel = 100.0
+        self.weather = 'dry'
+        self.competitors = [{'position': i, 'tire_wear': 0.0, 'tire_type': 'medium'} for i in range(1, 21)]
+        
+    def reset(self):
+        self.lap = 0
+        self.position = 10
+        self.tire_wear = 0.0
+        self.tire_type = 'medium'
+        self.fuel = 100.0
+        self.weather = 'dry'
+        return self._get_state()
+        
+    def _get_state(self):
+        """Convert current state to numpy array for neural network"""
+        return np.array([
+            self.lap / self.max_laps,
+            (self.position - 1) / 19,  # Normalize 1-20 to 0-1
+            self.tire_wear,
+            ['soft', 'medium', 'hard', 'inter', 'wet'].index(self.tire_type) / 4,
+            self.fuel / 100,
+            ['dry', 'light_rain', 'heavy_rain'].index(self.weather) / 2
+        ])
+        
+    def step(self, action):
+        """Execute action and return (next_state, reward, done)"""
+        if action == 'continue':
+            pass
+        elif action.startswith('pit_'):
+            self.tire_type = action[4:]
+            self.tire_wear = 0.0
+            if 'fill' in action:
+                self.fuel = 100 if 'full' in action else 60
+            else:
+                self.fuel = max(self.fuel, 60)
+        
+        # Progress lap
+        self.lap += 1
+        
+        # Update tire wear
+        wear_rates = {'soft': 0.15, 'medium': 0.1, 'hard': 0.07, 'inter': 0.12, 'wet': 0.09}
+        self.tire_wear = min(1.0, self.tire_wear + wear_rates[self.tire_type] * (1 + 0.2 * (self.fuel / 100)))
+        
+        # Update fuel
+        self.fuel = max(0, self.fuel - 2.5)
+        
+        # Update position based on performance
+        performance = (1 - self.tire_wear*0.5) * (1 - self.fuel/200)
+        position_change = np.random.choice([-1, 0, 1], p=[0.3*performance, 0.4, 0.3*(1-performance)])
+        self.position = max(1, min(20, self.position + position_change))
+        
+        # Update weather
+        if random.random() < 0.05:
+            self.weather = random.choice(['dry', 'light_rain', 'heavy_rain'])
+        
+        # Calculate reward
+        if self.lap >= self.max_laps:
+            reward = 100 - self.position  # 100 for 1st, 99 for 2nd, etc.
+            done = True
+        else:
+            reward = -3 if action != 'continue' else 0  # Penalty for pitting
+            done = False
+            
+        return self._get_state(), reward, done
+
+class DQNAgent:
+    def __init__(self, state_size, action_size):
+        self.state_size = state_size
+        self.action_size = action_size
+        self.memory = deque(maxlen=2000)
+        self.gamma = 0.95  # discount rate
+        self.epsilon = 1.0  # exploration rate
+        self.epsilon_min = 0.01
+        self.epsilon_decay = 0.995
+        self.learning_rate = 0.001
+        self.model = self._build_model()
+        
+    def _build_model(self):
+        """Neural Net for Deep Q-learning"""
+        model = models.Sequential()
+        model.add(layers.Dense(24, input_dim=self.state_size, activation='relu'))
+        model.add(layers.Dense(24, activation='relu'))
+        model.add(layers.Dense(self.action_size, activation='linear'))
+        model.compile(loss='mse', optimizer=optimizers.Adam(lr=self.learning_rate))
+        return model
+        
+    def remember(self, state, action, reward, next_state, done):
+        self.memory.append((state, action, reward, next_state, done))
+        
+    def act(self, state):
+        if np.random.rand() <= self.epsilon:
+            return random.randrange(self.action_size)
+        act_values = self.model.predict(state)
+        return np.argmax(act_values[0])
+        
+    def replay(self, batch_size):
+        minibatch = random.sample(self.memory, batch_size)
+        for state, action, reward, next_state, done in minibatch:
+            target = reward
+            if not done:
+                target = reward + self.gamma * np.amax(self.model.predict(next_state)[0])
+            target_f = self.model.predict(state)
+            target_f[0][action] = target
+            self.model.fit(state, target_f, epochs=1, verbose=0)
+        if self.epsilon > self.epsilon_min:
+            self.epsilon *= self.epsilon_decay
+            
+    def load(self, name):
+        self.model.load_weights(name)
+        
+    def save(self, name):
+        self.model.save_weights(name)
+
+def train_dqn():
+    env = RaceEnvironment()
+    state_size = len(env._get_state())
+    action_size = 8  # Corresponding to the 8 possible actions
+    agent = DQNAgent(state_size, action_size)
+    batch_size = 32
+    episodes = 1000
+    
+    for e in range(episodes):
+        state = env.reset()
+        state = np.reshape(state, [1, state_size])
+        total_reward = 0
+        
+        for time in range(50):  # Max 50 laps
+            action_idx = agent.act(state)
+            action = [
+                'continue', 'pit_soft', 'pit_medium', 'pit_hard',
+                'pit_inter', 'pit_wet', 'short_fill', 'full_fill'
+            ][action_idx]
+            
+            next_state, reward, done = env.step(action)
+            next_state = np.reshape(next_state, [1, state_size])
+            agent.remember(state, action_idx, reward, next_state, done)
+            state = next_state
+            total_reward += reward
+            
+            if done:
+                print(f"episode: {e}/{episodes}, score: {total_reward}, e: {agent.epsilon:.2f}")
+                break
+                
+            if len(agent.memory) > batch_size:
+                agent.replay(batch_size)
+    
+    return agent</pre>
+            </div>
+            
+            <div class="business-impact">
+                <h3>Business Impact</h3>
+                <ul>
+                    <li>Learns optimal strategies from historical race data</li>
+                    <li>Adapts to new situations through continuous learning</li>
+                    <li>Can incorporate real-time telemetry data</li>
+                    <li>Provides immediate strategy recommendations during races</li>
+                </ul>
+            </div>
+            
+            <div class="data-structures">
+                <h3>Key Data Structures</h3>
+                <ul>
+                    <li><strong>Experience Replay Buffer:</strong> For storing past experiences (implemented as deque)</li>
+                    <li><strong>Neural Network:</strong> For Q-value approximation (using Keras Sequential model)</li>
+                    <li><strong>State Representation:</strong> Normalized numpy arrays for efficient processing</li>
+                </ul>
+            </div>
+        </div>
+
+        <section id="system-integration" class="section">
+            <h2>System Integration and Data Flow</h2>
+            
+            <h3>Overall Architecture</h3>
+            <p>The complete system integrates these algorithms in a coordinated fashion:</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Component</th>
+                        <th>Function</th>
+                        <th>Data Inputs</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Real-Time Data Ingestion</td>
+                        <td>Collects telemetry data from car and track</td>
+                        <td>Car sensors, GPS, timing systems</td>
+                    </tr>
+                    <tr>
+                        <td>State Estimation</td>
+                        <td>Determines current race state</td>
+                        <td>Position, tire wear, fuel, weather, competitors</td>
+                    </tr>
+                    <tr>
+                        <td>Strategic Decision Making</td>
+                        <td>MCTS, MDP, and DQN for optimal strategy</td>
+                        <td>Race state, historical data, simulations</td>
+                    </tr>
+                    <tr>
+                        <td>Tactical Execution</td>
+                        <td>A* for overtaking, fuel management</td>
+                        <td>Track layout, traffic positions, car performance</td>
+                    </tr>
+                    <tr>
+                        <td>Feedback Loop</td>
+                        <td>Improves models based on results</td>
+                        <td>Race outcomes, strategy effectiveness</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3>Data Requirements</h3>
+            <div class="data-structures">
+                <ul>
+                    <li><strong>Car Telemetry:</strong> Tire wear, fuel level, lap times, engine performance</li>
+                    <li><strong>Track Data:</strong> Layout, sector times, overtaking zones, elevation changes</li>
+                    <li><strong>Competitor Data:</strong> Positions, tire choices, pit stop history, lap times</li>
+                    <li><strong>Weather Data:</strong> Current conditions, forecasts, track temperature</li>
+                    <li><strong>Historical Data:</strong> Past race performances, strategy outcomes, tire degradation models</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <button class="back-to-top" title="Back to top">↑</button>
+
+    <script>
+        // Scroll to reveal animations
+        document.addEventListener('DOMContentLoaded', function() {
+            const sections = document.querySelectorAll('.section');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, {threshold: 0.1});
+            
+            sections.forEach(section => {
+                observer.observe(section);
+            });
+            
+            // Back to top button
+            const backToTopButton = document.querySelector('.back-to-top');
+            
+            window.addEventListener('scroll', () => {
+                if (window.pageYOffset > 300) {
+                    backToTopButton.classList.add('visible');
+                } else {
+                    backToTopButton.classList.remove('visible');
+                }
+            });
+            
+            backToTopButton.addEventListener('click', () => {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
+            
+            // Dark mode toggle (optional)
+            const darkModeToggle = document.createElement('button');
+            darkModeToggle.textContent = '🌓';
+            darkModeToggle.style.position = 'fixed';
+            darkModeToggle.style.bottom = '2rem';
+            darkModeToggle.style.right = '2rem';
+            darkModeToggle.style.padding = '0.8rem';
+            darkModeToggle.style.background = 'var(--primary)';
+            darkModeToggle.style.color = '#fff';
+            darkModeToggle.style.border = 'none';
+            darkModeToggle.style.borderRadius = '50%';
+            darkModeToggle.style.cursor = 'pointer';
+            darkModeToggle.style.zIndex = '999';
+            darkModeToggle.style.transition = 'all 0.3s ease';
+            darkModeToggle.addEventListener('click', () => {
+                document.body.classList.toggle('dark');
+            });
+            document.body.appendChild(darkModeToggle);
+        });
+    </script>
+</body>
+</html>

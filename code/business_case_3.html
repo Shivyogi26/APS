@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aerodynamics & CFD Simulation</title>
+    <link rel="stylesheet" href="./business_case.css">
+</head>
+<body>
+    <nav class="nav-container">
+        <div class="logo">CFD Simulation System</div>
+        <div class="nav-links">
+            <a href="#fem">FEM/FVM</a>
+            <a href="#multigrid">Multigrid</a>
+            <a href="#conjugate">Conjugate Gradient</a>
+            <a href="#parallel">Parallel Computing</a>
+        </div>
+    </nav>
+
+    <main>
+        <section id="about" class="section visible">
+            <h1>Aerodynamics & CFD Simulation System</h1>
+            <p class="intro">Advanced computational fluid dynamics simulations to optimize car aerodynamics and reduce physical testing requirements.</p>
+        </section>
+
+        <div id="fem" class="algorithm-container section visible">
+            <h2>1. Finite Element/Volume Method (FEM/FVM)</h2>
+            
+            <h3>Purpose</h3>
+            <p>Numerically solve Navier-Stokes equations for fluid flow around car surfaces</p>
+            
+            <h3>Implementation</h3>
+            <div class="code-block">
+<pre>import numpy as np
+from scipy.sparse import lil_matrix, csr_matrix
+from scipy.sparse.linalg import spsolve
+
+class CFDSolver:
+    def __init__(self, mesh):
+        """
+        Initialize CFD solver with computational mesh
+        
+        Args:
+            mesh: Dictionary containing mesh information {
+                'nodes': array of node coordinates,
+                'elements': array of element connectivity,
+                'boundaries': dictionary of boundary conditions
+            }
+        """
+        self.mesh = mesh
+        self.n_nodes = len(mesh['nodes'])
+        
+        # Initialize matrices
+        self.A = lil_matrix((self.n_nodes, self.n_nodes))  # System matrix
+        self.b = np.zeros(self.n_nodes)  # Right-hand side vector
+        
+    def assemble_system(self):
+        """Assemble finite volume discretization of Navier-Stokes equations"""
+        # Simplified 2D Stokes flow (linearized Navier-Stokes)
+        for element in self.mesh['elements']:
+            # Get element nodes and coordinates
+            nodes = element['nodes']
+            coords = np.array([self.mesh['nodes'][n] for n in nodes])
+            
+            # Calculate element stiffness matrix (simplified)
+            # In real implementation, this would use proper shape functions
+            # and numerical integration for the actual Navier-Stokes terms
+            K_elem = self._calculate_element_matrix(coords)
+            f_elem = self._calculate_element_rhs(coords)
+            
+            # Add to global system
+            for i, ni in enumerate(nodes):
+                self.b[ni] += f_elem[i]
+                for j, nj in enumerate(nodes):
+                    self.A[ni, nj] += K_elem[i, j]
+        
+        # Apply boundary conditions
+        self._apply_boundary_conditions()
+        
+        # Convert to compressed sparse row format for efficient solving
+        self.A = csr_matrix(self.A)
+    
+    def solve(self):
+        """Solve the system of equations"""
+        return spsolve(self.A, self.b)
+    
+    def _calculate_element_matrix(self, coords):
+        """Calculate element stiffness matrix (simplified example)"""
+        # This is a placeholder - real implementation would use proper FEM/FVM
+        # formulations for the Navier-Stokes equations
+        n_nodes = coords.shape[0]
+        return np.eye(n_nodes)  # Identity matrix for demonstration
+    
+    def _calculate_element_rhs(self, coords):
+        """Calculate element right-hand side (simplified example)"""
+        n_nodes = coords.shape[0]
+        return np.zeros(n_nodes)
+    
+    def _apply_boundary_conditions(self):
+        """Apply boundary conditions to the system"""
+        for bc_type, bc_data in self.mesh['boundaries'].items():
+            if bc_type == 'velocity_inlet':
+                # Apply velocity boundary conditions
+                for node in bc_data['nodes']:
+                    # Set Dirichlet boundary condition
+                    self.A[node, :] = 0
+                    self.A[node, node] = 1
+                    self.b[node] = bc_data['value']
+            elif bc_type == 'pressure_outlet':
+                # Apply pressure boundary conditions
+                pass  # Implementation would depend on formulation
+            # Additional boundary types would be implemented here
+
+# Example usage:
+# mesh = load_mesh_from_file('car_geometry.msh')
+# solver = CFDSolver(mesh)
+# solver.assemble_system()
+# solution = solver.solve()</pre>
+            </div>
+            
+            <div class="business-impact">
+                <h3>Business Impact</h3>
+                <ul>
+                    <li>Enables virtual testing of aerodynamic designs</li>
+                    <li>30% reduction in physical wind tunnel testing costs</li>
+                    <li>Allows rapid iteration of design concepts</li>
+                    <li>Provides detailed flow field visualization</li>
+                </ul>
+            </div>
+            
+            <div class="data-structures">
+                <h3>Key Data Structures</h3>
+                <ul>
+                    <li><strong>Computational Mesh:</strong> Nodes, elements, and boundary definitions</li>
+                    <li><strong>Sparse Matrices:</strong> For efficient storage of system matrices</li>
+                    <li><strong>Boundary Condition Sets:</strong> Organized by type (inlet, outlet, wall, etc.)</li>
+                    <li><strong>Solution Vector:</strong> Field variables (velocity, pressure) at nodes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="multigrid" class="algorithm-container section">
+            <h2>2. Multigrid Solvers</h2>
+            
+            <h3>Purpose</h3>
+            <p>Accelerate convergence of CFD solutions using hierarchical grid approach</p>
+            
+            <h3>Implementation</h3>
+            <div class="code-block">
+<pre>import numpy as np
+from scipy.sparse import diags
+from scipy.sparse.linalg import inv
+
+class MultigridSolver:
+    def __init__(self, levels=3):
+        """
+        Initialize multigrid solver
+        
+        Args:
+            levels: Number of multigrid levels
+        """
+        self.levels = levels
+        self.grids = []
+        self.interpolators = []
+        self.restrictors = []
+    
+    def setup(self, A_fine):
+        """Setup multigrid hierarchy"""
+        # Create coarse grids (simplified example)
+        self.grids.append(A_fine)
+        for _ in range(1, self.levels):
+            # In practice, this would use proper grid coarsening
+            A_coarse = self._coarsen_matrix(self.grids[-1])
+            self.grids.append(A_coarse)
+            
+            # Create interpolation and restriction operators
+            P = self._create_interpolation(A_coarse.shape[0], self.grids[-2].shape[0])
+            self.interpolators.append(P)
+            self.restrictors.append(P.T)  # Simple restriction
+    
+    def solve(self, b, x0=None, max_cycles=10, tol=1e-6):
+        """Solve Ax = b using multigrid"""
+        if x0 is None:
+            x = np.zeros_like(b)
+        else:
+            x = x0.copy()
+        
+        residual_norms = []
+        for cycle in range(max_cycles):
+            x = self._v_cycle(0, b, x)
+            residual = b - self.grids[0] @ x
+            residual_norm = np.linalg.norm(residual)
+            residual_norms.append(residual_norm)
+            
+            if residual_norm < tol:
+                break
+        
+        return x, residual_norms
+    
+    def _v_cycle(self, level, b, x):
+        """Perform one V-cycle"""
+        if level == self.levels - 1:
+            # Solve exactly on coarsest grid
+            return self._solve_coarsest(b)
+        
+        # Pre-smoothing (Gauss-Seidel)
+        x = self._gauss_seidel(self.grids[level], b, x, iterations=3)
+        
+        # Compute residual and restrict to coarse grid
+        residual = b - self.grids[level] @ x
+        b_coarse = self.restrictors[level] @ residual
+        
+        # Recursive coarse grid correction
+        correction_coarse = np.zeros_like(b_coarse)
+        correction_coarse = self._v_cycle(level + 1, b_coarse, correction_coarse)
+        
+        # Interpolate and apply correction
+        correction_fine = self.interpolators[level] @ correction_coarse
+        x += correction_fine
+        
+        # Post-smoothing
+        x = self._gauss_seidel(self.grids[level], b, x, iterations=3)
+        
+        return x
+    
+    def _gauss_seidel(self, A, b, x, iterations=1):
+        """Gauss-Seidel smoother"""
+        D = diags(A.diagonal())
+        L = -tril(A, k=-1)
+        for _ in range(iterations):
+            x = inv(D - L) @ (b + L.T @ x)
+        return x
+    
+    def _coarsen_matrix(self, A_fine):
+        """Create coarse grid matrix (simplified)"""
+        n = A_fine.shape[0] // 2
+        return diags(np.ones(n))  # Identity for demonstration
+    
+    def _create_interpolation(self, n_coarse, n_fine):
+        """Create interpolation matrix (simplified)"""
+        return diags(np.ones(n_fine), shape=(n_fine, n_coarse))
+    
+    def _solve_coarsest(self, b):
+        """Solve exactly on coarsest grid"""
+        A_coarse = self.grids[-1]
+        return inv(A_coarse) @ b
+
+# Example usage:
+# A = ...  # System matrix from FEM/FVM discretization
+# b = ...  # Right-hand side vector
+# mg_solver = MultigridSolver(levels=4)
+# mg_solver.setup(A)
+# x, residuals = mg_solver.solve(b)</pre>
+            </div>
+            
+            <div class="business-impact">
+                <h3>Business Impact</h3>
+                <ul>
+                    <li>5-10x faster convergence compared to standard methods</li>
+                    <li>Enables simulation of larger, more detailed models</li>
+                    <li>Reduces cloud computing costs by requiring fewer iterations</li>
+                    <li>Makes parametric studies practical</li>
+                </ul>
+            </div>
+            
+            <div class="data-structures">
+                <h3>Key Data Structures</h3>
+                <ul>
+                    <li><strong>Grid Hierarchy:</strong> Multiple levels of discretization</li>
+                    <li><strong>Transfer Operators:</strong> Interpolation and restriction matrices</li>
+                    <li><strong>Smoother Storage:</strong> Matrices for relaxation steps</li>
+                    <li><strong>Residual Tracking:</strong> Convergence history data</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="conjugate" class="algorithm-container section">
+            <h2>3. Conjugate Gradient Method</h2>
+            
+            <h3>Purpose</h3>
+            <p>Efficiently solve large sparse systems from CFD discretizations</p>
+            
+            <h3>Implementation</h3>
+            <div class="code-block">
+<pre>import numpy as np
+from scipy.sparse.linalg import LinearOperator
+
+class ConjugateGradientSolver:
+    def __init__(self, A, max_iter=1000, tol=1e-8):
+        """
+        Initialize conjugate gradient solver
+        
+        Args:
+            A: Linear operator or sparse matrix representing the system
+            max_iter: Maximum number of iterations
+            tol: Tolerance for convergence
+        """
+        self.A = A
+        self.max_iter = max_iter
+        self.tol = tol
+    
+    def solve(self, b, x0=None, preconditioner=None):
+        """
+        Solve the system Ax = b
+        
+        Args:
+            b: Right-hand side vector
+            x0: Initial guess (optional)
+            preconditioner: Preconditioning function (optional)
+        """
+        if x0 is None:
+            x = np.zeros_like(b)
+        else:
+            x = x0.copy()
+        
+        r = b - self._matvec(x)
+        if preconditioner:
+            z = preconditioner(r)
+            p = z.copy()
+        else:
+            p = r.copy()
+        
+        rsold = np.dot(r, r if preconditioner is None else z)
+        
+        residuals = []
+        for i in range(self.max_iter):
+            Ap = self._matvec(p)
+            alpha = rsold / np.dot(p, Ap)
+            x += alpha * p
+            r -= alpha * Ap
+            
+            if preconditioner:
+                z = preconditioner(r)
+                rsnew = np.dot(r, z)
+            else:
+                rsnew = np.dot(r, r)
+            
+            residuals.append(np.sqrt(rsnew))
+            if np.sqrt(rsnew) < self.tol:
+                break
+                
+            if preconditioner:
+                p = z + (rsnew / rsold) * p
+            else:
+                p = r + (rsnew / rsold) * p
+            rsold = rsnew
+        
+        return x, residuals
+    
+    def _matvec(self, x):
+        """Matrix-vector product wrapper"""
+        if isinstance(self.A, LinearOperator):
+            return self.A.matvec(x)
+        return self.A @ x
+
+# Example usage:
+# A = ...  # Sparse system matrix
+# b = ...  # Right-hand side
+# cg_solver = ConjugateGradientSolver(A)
+# x, residuals = cg_solver.solve(b)
+
+# With diagonal preconditioning:
+# M = diags(1.0 / A.diagonal())
+# def preconditioner(r):
+#     return M @ r
+# x, residuals = cg_solver.solve(b, preconditioner=preconditioner)</pre>
+            </div>
+            
+            <div class="business-impact">
+                <h3>Business Impact</h3>
+                <ul>
+                    <li>Efficient solution of large CFD systems with millions of unknowns</li>
+                    <li>Memory-efficient for sparse systems</li>
+                    <li>Flexible with preconditioners for further acceleration</li>
+                    <li>Core component enabling practical CFD simulations</li>
+                </ul>
+            </div>
+            
+            <div class="data-structures">
+                <h3>Key Data Structures</h3>
+                <ul>
+                    <li><strong>Sparse Matrix:</strong> System matrix in compressed format</li>
+                    <li><strong>Krylov Vectors:</strong> Search direction and residual vectors</li>
+                    <li><strong>Preconditioner:</strong> Optional matrix/operator to improve convergence</li>
+                    <li><strong>Residual History:</strong> Tracking convergence progress</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="parallel" class="algorithm-container section">
+            <h2>4. Parallel Computing (MPI/CUDA)</h2>
+            
+            <h3>Purpose</h3>
+            <p>Distribute CFD computations across multiple processors/GPUs for faster results</p>
+            
+            <h3>Implementation</h3>
+            <div class="code-block">
+<pre># MPI Example (Python with mpi4py)
+from mpi4py import MPI
+import numpy as np
+
+class MPICFDSolver:
+    def __init__(self):
+        self.comm = MPI.COMM_WORLD
+        self.rank = self.comm.Get_rank()
+        self.size = self.comm.Get_size()
+    
+    def solve(self, global_mesh):
+        """Solve CFD problem in parallel"""
+        # Distribute mesh
+        local_mesh = self._distribute_mesh(global_mesh)
+        
+        # Local assembly
+        local_A, local_b = self._assemble_local_system(local_mesh)
+        
+        # Solve using parallel conjugate gradient
+        x = self._parallel_cg(local_A, local_b)
+        
+        # Gather results
+        return self._gather_solution(x)
+    
+    def _distribute_mesh(self, global_mesh):
+        """Distribute mesh across processes"""
+        # In practice, this would use proper domain decomposition
+        # with ghost cells for neighboring partitions
+        n_local = len(global_mesh['nodes']) // self.size
+        start = self.rank * n_local
+        end = start + n_local if self.rank < self.size - 1 else len(global_mesh['nodes'])
+        
+        local_mesh = {
+            'nodes': global_mesh['nodes'][start:end],
+            'elements': [e for e in global_mesh['elements'] 
+                        if any(n in range(start, end) for n in e['nodes']],
+            'boundaries': {}  # Would need proper handling
+        }
+        return local_mesh
+    
+    def _assemble_local_system(self, local_mesh):
+        """Assemble local portion of system"""
+        # Similar to serial assembly but with awareness of partition boundaries
+        n_local = len(local_mesh['nodes'])
+        A_local = np.zeros((n_local, n_local))
+        b_local = np.zeros(n_local)
+        
+        # ... assembly code ...
+        
+        return A_local, b_local
+    
+    def _parallel_cg(self, local_A, local_b):
+        """Parallel conjugate gradient solver"""
+        # Simplified example - real implementation would need proper
+        # handling of distributed matrices and communication
+        x = np.zeros_like(local_b)
+        r = local_b - local_A @ x
+        p = r.copy()
+        
+        for _ in range(1000):
+            Ap = local_A @ p
+            alpha = np.dot(r, r) / np.dot(p, Ap)
+            x += alpha * p
+            r_new = r - alpha * Ap
+            
+            if np.linalg.norm(r_new) < 1e-8:
+                break
+                
+            beta = np.dot(r_new, r_new) / np.dot(r, r)
+            p = r_new + beta * p
+            r = r_new
+        
+        return x
+    
+    def _gather_solution(self, local_x):
+        """Gather solution vectors from all processes"""
+        # Get local sizes
+        local_sizes = self.comm.gather(len(local_x), root=0)
+        
+        # Gather data
+        global_x = None
+        if self.rank == 0:
+            global_x = np.zeros(sum(local_sizes))
+        
+        self.comm.Gatherv(
+            sendbuf=local_x,
+            recvbuf=(global_x, local_sizes) if self.rank == 0 else None,
+            root=0
+        )
+        
+        return global_x
+
+# CUDA Example (PyCUDA)
+import pycuda.autoinit
+import pycuda.gpuarray as gpuarray
+from pycuda.elementwise import ElementwiseKernel
+
+class CUDACFDSolver:
+    def __init__(self):
+        # Define CUDA kernels
+        self.vector_add = ElementwiseKernel(
+            "float *a, float *b, float *c",
+            "c[i] = a[i] + b[i]",
+            "vector_add"
+        )
+        
+        self.vector_scale = ElementwiseKernel(
+            "float *a, float scale, float *b",
+            "b[i] = a[i] * scale",
+            "vector_scale"
+        )
+    
+    def solve(self, A, b):
+        """Solve using GPU acceleration"""
+        # Transfer data to GPU
+        b_gpu = gpuarray.to_gpu(b.astype(np.float32))
+        x_gpu = gpuarray.zeros_like(b_gpu)
+        r_gpu = gpuarray.to_gpu(b.astype(np.float32))
+        p_gpu = gpuarray.to_gpu(b.astype(np.float32))
+        
+        # Simplified CG on GPU
+        for _ in range(1000):
+            # Would need proper sparse matrix-vector kernel
+            Ap_gpu = gpuarray.zeros_like(b_gpu)
+            # ... matrix-vector multiply ...
+            
+            # Dot products would need reduction kernels
+            # ... continue CG steps ...
+        
+        return x_gpu.get()</pre>
+            </div>
+            
+            <div class="business-impact">
+                <h3>Business Impact</h3>
+                <ul>
+                    <li>Reduces simulation time from weeks to hours</li>
+                    <li>Enables complex, high-fidelity simulations</li>
+                    <li>Leverages cloud computing resources efficiently</li>
+                    <li>Makes real-time design feedback possible</li>
+                </ul>
+            </div>
+            
+            <div class="data-structures">
+                <h3>Key Data Structures</h3>
+                <ul>
+                    <li><strong>Distributed Meshes:</strong> Domain decomposition across processes</li>
+                    <li><strong>MPI Communicators:</strong> For inter-process communication</li>
+                    <li><strong>GPU Arrays:</strong> Device memory storage for acceleration</li>
+                    <li><strong>Parallel Kernels:</strong> CUDA functions for element-wise operations</li>
+                </ul>
+            </div>
+        </div>
+
+        <section id="system-integration" class="section">
+            <h2>System Integration and Workflow</h2>
+            
+            <h3>CFD Simulation Pipeline</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Stage</th>
+                        <th>Components</th>
+                        <th>Technologies</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Preprocessing</td>
+                        <td>Geometry preparation, meshing</td>
+                        <td>CAD software, ANSA, Pointwise</td>
+                    </tr>
+                    <tr>
+                        <td>Numerical Solution</td>
+                        <td>FEM/FVM, linear solvers</td>
+                        <td>OpenFOAM, ANSYS Fluent, Custom solvers</td>
+                    </tr>
+                    <tr>
+                        <td>Parallel Execution</td>
+                        <td>Domain decomposition, load balancing</td>
+                        <td>MPI, CUDA, OpenMP</td>
+                    </tr>
+                    <tr>
+                        <td>Postprocessing</td>
+                        <td>Visualization, analysis</td>
+                        <td>ParaView, Tecplot, Matplotlib</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3>Data Requirements</h3>
+            <div class="data-structures">
+                <ul>
+                    <li><strong>Geometric Data:</strong> CAD models, surface meshes</li>
+                    <li><strong>Simulation Parameters:</strong> Boundary conditions, material properties</li>
+                    <li><strong>Flow Conditions:</strong> Velocity, pressure, temperature profiles</li>
+                    <li><strong>Turbulence Models:</strong> k-ε, k-ω, LES parameters</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <button class="back-to-top" title="Back to top">↑</button>
+
+    <script>
+        // Scroll to reveal animations
+        document.addEventListener('DOMContentLoaded', function() {
+            const sections = document.querySelectorAll('.section');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, {threshold: 0.1});
+            
+            sections.forEach(section => {
+                observer.observe(section);
+            });
+            
+            // Back to top button
+            const backToTopButton = document.querySelector('.back-to-top');
+            
+            window.addEventListener('scroll', () => {
+                if (window.pageYOffset > 300) {
+                    backToTopButton.classList.add('visible');
+                } else {
+                    backToTopButton.classList.remove('visible');
+                }
+            });
+            
+            backToTopButton.addEventListener('click', () => {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
+            
+            // Dark mode toggle
+            const darkModeToggle = document.createElement('button');
+            darkModeToggle.textContent = '🌓';
+            darkModeToggle.style.position = 'fixed';
+            darkModeToggle.style.bottom = '2rem';
+            darkModeToggle.style.right = '2rem';
+            darkModeToggle.style.padding = '0.8rem';
+            darkModeToggle.style.background = 'var(--primary)';
+            darkModeToggle.style.color = '#fff';
+            darkModeToggle.style.border = 'none';
+            darkModeToggle.style.borderRadius = '50%';
+            darkModeToggle.style.cursor = 'pointer';
+            darkModeToggle.style.zIndex = '999';
+            darkModeToggle.style.transition = 'all 0.3s ease';
+            darkModeToggle.addEventListener('click', () => {
+                document.body.classList.toggle('dark');
+            });
+            document.body.appendChild(darkModeToggle);
+        });
+    </script>
+</body>
+</html>

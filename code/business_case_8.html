@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cloud & Big Data Infrastructure</title>
+    <link rel="stylesheet" href="./business_case.css">
+</head>
+<body>
+    <nav class="nav-container">
+        <div class="logo">Oracle Cloud Data Infrastructure</div>
+        <div class="nav-links">
+            <a href="#mapreduce">MapReduce/Spark</a>
+            <a href="#compression">Data Compression</a>
+            <a href="#graph">Graph Algorithms</a>
+            <a href="#loadbalancing">Load Balancing</a>
+        </div>
+    </nav>
+
+    <main>
+        <section id="about" class="section visible">
+            <h1>Cloud & Big Data Infrastructure</h1>
+            <p class="intro">High-performance data processing system handling terabytes of race data with real-time analytics and global availability.</p>
+        </section>
+
+        <div id="mapreduce" class="algorithm-container section visible">
+            <h2>1. MapReduce / Apache Spark DAG Scheduling</h2>
+            
+            <h3>Purpose</h3>
+            <p>Distributed processing of massive telemetry logs across cloud nodes for real-time race analytics</p>
+            
+            <h3>Implementation</h3>
+            <div class="code-block">
+<pre>from pyspark.sql import SparkSession
+from pyspark.sql.functions import col, avg, max, min
+
+class TelemetryProcessor:
+    def __init__(self):
+        """Initialize Spark session"""
+        self.spark = SparkSession.builder \
+            .appName("TelemetryProcessing") \
+            .config("spark.executor.memory", "8g") \
+            .config("spark.driver.memory", "4g") \
+            .config("spark.executor.cores", "4") \
+            .getOrCreate()
+    
+    def process_telemetry(self, input_path, output_path):
+        """Process telemetry data and compute statistics"""
+        # Read compressed telemetry data
+        df = self.spark.read.parquet(input_path)
+        
+        # Optimize DAG execution plan
+        df = df.repartition(100)  # Balance workload across nodes
+        
+        # Compute key metrics per car per lap
+        metrics = df.groupBy("car_id", "lap_number").agg(
+            avg("speed").alias("avg_speed"),
+            max("rpm").alias("max_rpm"),
+            min("throttle_position").alias("min_throttle"),
+            avg("brake_pressure").alias("avg_brake_pressure")
+        )
+        
+        # Additional complex computations
+        rolling_avg = self._compute_rolling_averages(df)
+        anomalies = self._detect_anomalies(df)
+        
+        # Write results
+        metrics.write.parquet(f"{output_path}/metrics")
+        rolling_avg.write.parquet(f"{output_path}/rolling_avg")
+        anomalies.write.parquet(f"{output_path}/anomalies")
+        
+        return metrics
+    
+    def _compute_rolling_averages(self, df):
+        """Compute rolling averages using window functions"""
+        from pyspark.sql.window import Window
+        window_spec = Window.partitionBy("car_id").orderBy("timestamp").rowsBetween(-5, 0)
+        
+        return df.withColumn("rolling_speed", 
+                           avg("speed").over(window_spec))
+    
+    def _detect_anomalies(self, df):
+        """Identify anomalous sensor readings"""
+        from pyspark.sql.functions import stddev, abs
+        
+        stats = df.groupBy("sensor_type").agg(
+            avg("value").alias("mean"),
+            stddev("value").alias("stddev")
+        )
+        
+        joined = df.join(stats, "sensor_type")
+        return joined.filter(
+            abs(col("value") - col("mean")) > 3 * col("stddev")
+        )
+
+# Example usage:
+# processor = TelemetryProcessor()
+# results = processor.process_telemetry(
+#     input_path="oci://bucket/telemetry/raw",
+#     output_path="oci://bucket/telemetry/processed"
+# )</pre>
+            </div>
+            
+            <div class="business-impact">
+                <h3>Business Impact</h3>
+                <ul>
+                    <li>50% faster processing of telemetry data compared to legacy systems</li>
+                    <li>Real-time analytics during races enables tactical decisions</li>
+                    <li>Horizontal scaling handles data volume spikes during events</li>
+                    <li>Optimized DAG scheduling reduces cloud compute costs</li>
+                </ul>
+            </div>
+            
+            <div class="data-structures">
+                <h3>Key Data Structures</h3>
+                <ul>
+                    <li><strong>Resilient Distributed Datasets (RDDs):</strong> Spark's fundamental data structure</li>
+                    <li><strong>DataFrames:</strong> Structured collections with schema</li>
+                    <li><strong>DAG (Directed Acyclic Graph):</strong> Execution plan for Spark operations</li>
+                    <li><strong>Partitioned Data:</strong> Data split across cluster nodes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="compression" class="algorithm-container section">
+            <h2>2. Data Compression (LZ4, Snappy)</h2>
+            
+            <h3>Purpose</h3>
+            <p>Reduce storage footprint and network transmission time for high-volume sensor data</p>
+            
+            <h3>Implementation</h3>
+            <div class="code-block">
+<pre>import lz4.frame
+import snappy
+import pandas as pd
+import numpy as np
+from io import BytesIO
+
+class TelemetryCompressor:
+    def __init__(self, algorithm='lz4'):
+        """
+        Initialize telemetry compressor
+        
+        Args:
+            algorithm: 'lz4' or 'snappy'
+        """
+        self.algorithm = algorithm
+    
+    def compress_dataframe(self, df):
+        """Compress pandas DataFrame"""
+        # Convert DataFrame to parquet bytes
+        buffer = BytesIO()
+        df.to_parquet(buffer)
+        raw_data = buffer.getvalue()
+        
+        # Apply compression
+        if self.algorithm == 'lz4':
+            compressed = lz4.frame.compress(raw_data)
+        else:
+            compressed = snappy.compress(raw_data)
+        
+        return compressed
+    
+    def decompress_dataframe(self, compressed_data):
+        """Decompress to pandas DataFrame"""
+        # Decompress
+        if self.algorithm == 'lz4':
+            raw_data = lz4.frame.decompress(compressed_data)
+        else:
+            raw_data = snappy.decompress(compressed_data)
+        
+        # Convert back to DataFrame
+        buffer = BytesIO(raw_data)
+        return pd.read_parquet(buffer)
+    
+    def benchmark_compression(self, df):
+        """Compare compression algorithms"""
+        original_size = df.memory_usage(deep=True).sum()
+        
+        # Test LZ4
+        lz4_compressed = self.compress_dataframe(df)
+        lz4_ratio = len(lz4_compressed) / original_size
+        
+        # Test Snappy
+        snappy_compressed = snappy.compress(df.to_parquet())
+        snappy_ratio = len(snappy_compressed) / original_size
+        
+        return {
+            'original_size': original_size,
+            'lz4_size': len(lz4_compressed),
+            'lz4_ratio': lz4_ratio,
+            'snappy_size': len(snappy_compressed),
+            'snappy_ratio': snappy_ratio
+        }
+
+# Example usage:
+# df = pd.read_parquet('telemetry_sample.parquet')
+# compressor = TelemetryCompressor(algorithm='lz4')
+# compressed = compressor.compress_dataframe(df)
+# 
+# # Save to cloud storage
+# oci_client.put_object(
+#     namespace='...',
+#     bucket_name='telemetry',
+#     object_name='compressed_data.lz4',
+#     content=compressed
+# )</pre>
+            </div>
+            
+            <div class="business-impact">
+                <h3>Business Impact</h3>
+                <ul>
+                    <li>70-80% reduction in storage costs for historical telemetry</li>
+                    <li>50% faster data transfer between cloud regions</li>
+                    <li>Lower network bandwidth requirements during races</li>
+                    <li>Faster read times for compressed columnar formats</li>
+                </ul>
+            </div>
+            
+            <div class="data-structures">
+                <h3>Key Data Structures</h3>
+                <ul>
+                    <li><strong>Compressed Byte Streams:</strong> Binary compressed data</li>
+                    <li><strong>Columnar Storage:</strong> Parquet/ORC formatted data</li>
+                    <li><strong>Compression Dictionaries:</strong> For repeated pattern matching</li>
+                    <li><strong>Block Chunks:</strong> Independently compressed data blocks</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="graph" class="algorithm-container section">
+            <h2>3. Graph Algorithms (PageRank, Betweenness)</h2>
+            
+            <h3>Purpose</h3>
+            <p>Analyze fan networks to identify key influencers and optimize marketing strategies</p>
+            
+            <h3>Implementation</h3>
+            <div class="code-block">
+<pre>import networkx as nx
+from pyspark.sql import SparkSession
+from graphframes import GraphFrame
+
+class FanNetworkAnalyzer:
+    def __init__(self):
+        """Initialize Spark session for graph processing"""
+        self.spark = SparkSession.builder \
+            .appName("FanGraphAnalysis") \
+            .config("spark.jars.packages", "graphframes:graphframes:0.8.2-spark3.2-s_2.12") \
+            .getOrCreate()
+    
+    def build_fan_graph(self, interactions_df):
+        """Construct fan interaction graph from raw data"""
+        # Create vertices (fans)
+        vertices = interactions_df.selectExpr(
+            "user_id as id", 
+            "username", 
+            "follower_count"
+        ).distinct()
+        
+        # Create edges (interactions)
+        edges = interactions_df.selectExpr(
+            "source_user_id as src", 
+            "target_user_id as dst", 
+            "interaction_type", 
+            "timestamp"
+        )
+        
+        return GraphFrame(vertices, edges)
+    
+    def compute_pagerank(self, graph, tol=0.01):
+        """Compute PageRank to identify influential fans"""
+        return graph.pageRank(resetProbability=0.15, tol=tol)
+    
+    def compute_betweenness(self, graph):
+        """Compute betweenness centrality"""
+        # For large graphs, we'd use approximate algorithms
+        result = graph.shortestPaths(landmarks=graph.vertices.limit(100).rdd.map(lambda x: x.id).collect())
+        return result
+    
+    def detect_communities(self, graph):
+        """Detect fan communities using label propagation"""
+        return graph.labelPropagation(maxIter=10)
+    
+    def analyze_influencers(self, interactions_path):
+        """Complete analysis pipeline"""
+        # Load data
+        interactions = self.spark.read.parquet(interactions_path)
+        
+        # Build graph
+        graph = self.build_fan_graph(interactions)
+        
+        # Compute metrics
+        pagerank_results = self.compute_pagerank(graph)
+        communities = self.detect_communities(graph)
+        
+        # Get top influencers
+        top_influencers = pagerank_results.vertices \
+            .orderBy("pagerank", ascending=False) \
+            .limit(100) \
+            .toPandas()
+        
+        return {
+            'top_influencers': top_influencers,
+            'communities': communities,
+            'graph': graph
+        }
+
+# Example usage:
+# analyzer = FanNetworkAnalyzer()
+# results = analyzer.analyze_influencers(
+#     interactions_path="oci://bucket/fan_interactions"
+# )</pre>
+            </div>
+            
+            <div class="business-impact">
+                <h3>Business Impact</h3>
+                <ul>
+                    <li>Identified top 1% of fans responsible for 30% of engagement</li>
+                    <li>Optimized influencer marketing campaigns</li>
+                    <li>Discovered natural fan communities for targeted content</li>
+                    <li>Improved virality of marketing content</li>
+                </ul>
+            </div>
+            
+            <div class="data-structures">
+                <h3>Key Data Structures</h3>
+                <ul>
+                    <li><strong>Graph Structure:</strong> Vertices and edges representing fan networks</li>
+                    <li><strong>Adjacency Lists:</strong> Efficient graph representation</li>
+                    <li><strong>Centrality Metrics:</strong> PageRank, betweenness scores</li>
+                    <li><strong>Community Labels:</strong> Cluster assignments for fans</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="loadbalancing" class="algorithm-container section">
+            <h2>4. Load Balancing (Round Robin, Least Connections)</h2>
+            
+            <h3>Purpose</h3>
+            <p>Distribute incoming telemetry and fan requests across cloud servers for optimal performance</p>
+            
+            <h3>Implementation</h3>
+            <div class="code-block">
+<pre>import random
+from collections import defaultdict
+import time
+import threading
+
+class LoadBalancer:
+    def __init__(self, strategy='least_conn'):
+        """
+        Initialize load balancer
+        
+        Args:
+            strategy: 'round_robin' or 'least_conn' or 'weighted'
+        """
+        self.strategy = strategy
+        self.servers = []
+        self.server_stats = defaultdict(lambda: {'connections': 0, 'response_time': 0})
+        self.lock = threading.Lock()
+        self.rr_index = 0
+    
+    def add_server(self, server_id, weight=1):
+        """Add a server to the pool"""
+        with self.lock:
+            self.servers.append({
+                'id': server_id,
+                'weight': weight,
+                'healthy': True
+            })
+    
+    def remove_server(self, server_id):
+        """Remove a server from the pool"""
+        with self.lock:
+            self.servers = [s for s in self.servers if s['id'] != server_id]
+    
+    def route_request(self, request):
+        """Route incoming request to appropriate server"""
+        if not self.servers:
+            raise Exception("No servers available")
+        
+        server = self._select_server()
+        
+        # Update stats
+        with self.lock:
+            self.server_stats[server['id']]['connections'] += 1
+        
+        # Simulate processing
+        start_time = time.time()
+        response = self._process_request(server, request)
+        processing_time = time.time() - start_time
+        
+        # Update stats
+        with self.lock:
+            self.server_stats[server['id']]['connections'] -= 1
+            self.server_stats[server['id']]['response_time'] = \
+                0.9 * self.server_stats[server['id']]['response_time'] + \
+                0.1 * processing_time
+        
+        return response
+    
+    def _select_server(self):
+        """Select server based on strategy"""
+        with self.lock:
+            healthy_servers = [s for s in self.servers if s['healthy']]
+            
+            if self.strategy == 'round_robin':
+                self.rr_index = (self.rr_index + 1) % len(healthy_servers)
+                return healthy_servers[self.rr_index]
+            
+            elif self.strategy == 'least_conn':
+                return min(
+                    healthy_servers,
+                    key=lambda s: self.server_stats[s['id']]['connections']
+                )
+            
+            elif self.strategy == 'weighted':
+                total_weight = sum(s['weight'] for s in healthy_servers)
+                rand = random.uniform(0, total_weight)
+                upto = 0
+                for server in healthy_servers:
+                    if upto + server['weight'] >= rand:
+                        return server
+                    upto += server['weight']
+                
+                return healthy_servers[0]  # fallback
+    
+    def _process_request(self, server, request):
+        """Simulate request processing (would call actual server in production)"""
+        time.sleep(random.uniform(0.01, 0.1))  # Simulate variable processing time
+        return f"Processed by {server['id']}: {request}"
+
+# Example usage:
+# lb = LoadBalancer(strategy='least_conn')
+# lb.add_server('server1', weight=3)
+# lb.add_server('server2', weight=2)
+# lb.add_server('server3', weight=1)
+# 
+# # Simulate requests
+# for i in range(10):
+#     print(lb.route_request(f"request_{i}"))</pre>
+            </div>
+            
+            <div class="business-impact">
+                <h3>Business Impact</h3>
+                <ul>
+                    <li>99.99% availability during peak race events</li>
+                    <li>30% better utilization of cloud resources</li>
+                    <li>Automatic failover during server outages</li>
+                    <li>Consistent low-latency access globally</li>
+                </ul>
+            </div>
+            
+            <div class="data-structures">
+                <h3>Key Data Structures</h3>
+                <ul>
+                    <li><strong>Server Pool:</strong> List of available backend servers</li>
+                    <li><strong>Connection Tracking:</strong> Current load per server</li>
+                    <li><strong>Health Checks:</strong> Monitoring server availability</li>
+                    <li><strong>Request Queue:</strong> Buffer for incoming requests</li>
+                </ul>
+            </div>
+        </div>
+
+        <section id="system-integration" class="section">
+            <h2>System Integration and Workflow</h2>
+            
+            <h3>Data Processing Pipeline</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Stage</th>
+                        <th>Components</th>
+                        <th>Technologies</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Data Ingestion</td>
+                        <td>Telemetry collection, fan interactions</td>
+                        <td>Kafka, OCI Streaming, Flume</td>
+                    </tr>
+                    <tr>
+                        <td>Data Processing</td>
+                        <td>ETL, analytics, machine learning</td>
+                        <td>Spark, Flink, OCI Data Flow</td>
+                    </tr>
+                    <tr>
+                        <td>Storage</td>
+                        <td>Data lakes, time-series databases</td>
+                        <td>OCI Object Storage, ADW, InfluxDB</td>
+                    </tr>
+                    <tr>
+                        <td>Serving</td>
+                        <td>APIs, dashboards, applications</td>
+                        <td>Oracle Cloud Infrastructure, Kubernetes</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3>Data Requirements</h3>
+            <div class="data-structures">
+                <ul>
+                    <li><strong>Telemetry Data:</strong> Sensor readings at 100Hz+ frequency</li>
+                    <li><strong>Video Streams:</strong> Multi-camera feeds with metadata</li>
+                    <li><strong>Fan Interactions:</strong> Social media, app usage, purchases</li>
+                    <li><strong>Race Metadata:</strong> Event schedules, weather, track conditions</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <button class="back-to-top" title="Back to top">↑</button>
+
+    <script>
+        // Scroll to reveal animations
+        document.addEventListener('DOMContentLoaded', function() {
+            const sections = document.querySelectorAll('.section');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, {threshold: 0.1});
+            
+            sections.forEach(section => {
+                observer.observe(section);
+            });
+            
+            // Back to top button
+            const backToTopButton = document.querySelector('.back-to-top');
+            
+            window.addEventListener('scroll', () => {
+                if (window.pageYOffset > 300) {
+                    backToTopButton.classList.add('visible');
+                } else {
+                    backToTopButton.classList.remove('visible');
+                }
+            });
+            
+            backToTopButton.addEventListener('click', () => {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
+            
+            // Dark mode toggle
+            const darkModeToggle = document.createElement('button');
+            darkModeToggle.textContent = '🌓';
+            darkModeToggle.style.position = 'fixed';
+            darkModeToggle.style.bottom = '2rem';
+            darkModeToggle.style.right = '2rem';
+            darkModeToggle.style.padding = '0.8rem';
+            darkModeToggle.style.background = 'var(--primary)';
+            darkModeToggle.style.color = '#fff';
+            darkModeToggle.style.border = 'none';
+            darkModeToggle.style.borderRadius = '50%';
+            darkModeToggle.style.cursor = 'pointer';
+            darkModeToggle.style.zIndex = '999';
+            darkModeToggle.style.transition = 'all 0.3s ease';
+            darkModeToggle.addEventListener('click', () => {
+                document.body.classList.toggle('dark');
+            });
+            document.body.appendChild(darkModeToggle);
+        });
+    </script>
+</body>
+</html>

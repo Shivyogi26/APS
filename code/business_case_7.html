@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Twin & Simulation</title>
+    <link rel="stylesheet" href="./business_case.css">
+</head>
+<body>
+    <nav class="nav-container">
+        <div class="logo">Digital Twin System</div>
+        <div class="nav-links">
+            <a href="#agent">Agent-Based Modeling</a>
+            <a href="#rl">Reinforcement Learning</a>
+            <a href="#sim2real">Sim2Real Transfer</a>
+        </div>
+    </nav>
+
+    <main>
+        <section id="about" class="section visible">
+            <h1>Digital Twin & Simulation</h1>
+            <p class="intro">Real-time virtual replicas of race cars for simulation, testing, and optimization.</p>
+        </section>
+
+        <div id="agent" class="algorithm-container section visible">
+            <h2>1. Agent-Based Modeling</h2>
+            
+            <h3>Purpose</h3>
+            <p>Simulate individual components/agents (tires, driver, engine) and their interactions in a virtual environment</p>
+            
+            <h3>Implementation</h3>
+            <div class="code-block">
+<pre>import numpy as np
+from typing import Dict, List
+
+class DigitalTwinAgent:
+    def __init__(self, agent_type: str, parameters: Dict):
+        """
+        Initialize a digital twin agent
+        
+        Args:
+            agent_type: Type of agent (tire, engine, driver, etc.)
+            parameters: Physical parameters of the agent
+        """
+        self.agent_type = agent_type
+        self.parameters = parameters
+        self.state = {}
+        self.neighbors = []
+    
+    def update(self, dt: float, environment: Dict):
+        """
+        Update agent state based on physics and interactions
+        
+        Args:
+            dt: Time step duration
+            environment: Current environment conditions
+        """
+        if self.agent_type == "tire":
+            self._update_tire(dt, environment)
+        elif self.agent_type == "engine":
+            self._update_engine(dt, environment)
+        # Additional agent types...
+    
+    def _update_tire(self, dt: float, environment: Dict):
+        """Update tire agent state"""
+        # Simplified tire model
+        vertical_load = self.state.get('vertical_load', 0)
+        slip_angle = self.state.get('slip_angle', 0)
+        angular_velocity = self.state.get('angular_velocity', 0)
+        
+        # Calculate forces (simplified Pacejka model)
+        f_lateral = self.parameters['cornering_stiffness'] * slip_angle
+        f_longitudinal = (self.parameters['longitudinal_stiffness'] * 
+                         (angular_velocity - environment['car_velocity']))
+        
+        # Update state
+        self.state['lateral_force'] = f_lateral
+        self.state['longitudinal_force'] = f_longitudinal
+        self.state['temperature'] = (self.state.get('temperature', 25) + 
+                                    dt * (f_lateral**2 + f_longitudinal**2) * 
+                                    self.parameters['heating_coefficient'])
+    
+    def _update_engine(self, dt: float, environment: Dict):
+        """Update engine agent state"""
+        throttle = environment.get('throttle_input', 0)
+        rpm = self.state.get('rpm', 1000)
+        
+        # Simplified engine model
+        torque = (self.parameters['max_torque'] * throttle * 
+                 np.interp(rpm, 
+                          self.parameters['torque_curve_rpms'],
+                          self.parameters['torque_curve_values']))
+        
+        # Update state
+        self.state['torque'] = torque
+        self.state['rpm'] = rpm + dt * (torque - environment['load_torque']) * 0.01
+        self.state['temperature'] = (self.state.get('temperature', 90) + 
+                                    dt * rpm * self.parameters['heating_factor'])
+
+class DigitalTwinSystem:
+    def __init__(self, agents: List[DigitalTwinAgent]):
+        """
+        Initialize digital twin system with multiple agents
+        
+        Args:
+            agents: List of agents in the system
+        """
+        self.agents = {agent.agent_type: agent for agent in agents}
+        self.time = 0.0
+        self.environment = {
+            'track_temperature': 25,
+            'car_velocity': 0,
+            'throttle_input': 0,
+            'steering_input': 0
+        }
+    
+    def connect_agents(self, connections: Dict):
+        """Establish relationships between agents"""
+        for source, targets in connections.items():
+            for target in targets:
+                self.agents[source].neighbors.append(self.agents[target])
+    
+    def update(self, dt: float, inputs: Dict):
+        """
+        Update entire digital twin system
+        
+        Args:
+            dt: Time step duration
+            inputs: External inputs to the system
+        """
+        # Update environment
+        self.environment.update(inputs)
+        self.time += dt
+        
+        # Update all agents
+        for agent in self.agents.values():
+            agent.update(dt, self.environment)
+        
+        # Update car velocity based on forces
+        total_force = sum(a.state.get('longitudinal_force', 0) 
+                         for a in self.agents.values())
+        self.environment['car_velocity'] += dt * total_force / 1000  # Simplified
+        
+        return {agent_type: agent.state for agent_type, agent in self.agents.items()}
+
+# Example usage:
+# tire_agent = DigitalTwinAgent("tire", {
+#     'cornering_stiffness': 1200,
+#     'longitudinal_stiffness': 1500,
+#     'heating_coefficient': 0.0001
+# })
+# engine_agent = DigitalTwinAgent("engine", {
+#     'max_torque': 800,
+#     'torque_curve_rpms': [1000, 4000, 8000, 12000],
+#     'torque_curve_values': [0.7, 1.0, 0.9, 0.6],
+#     'heating_factor': 0.00005
+# })
+# system = DigitalTwinSystem([tire_agent, engine_agent])
+# system.connect_agents({'engine': ['tire']})
+# for _ in range(100):  # Simulation loop
+#     states = system.update(0.01, {'throttle_input': 0.8})</pre>
+            </div>
+            
+            <div class="business-impact">
+                <h3>Business Impact</h3>
+                <ul>
+                    <li>15% improvement in car setup accuracy through virtual testing</li>
+                    <li>Reduced physical prototyping costs by 40%</li>
+                    <li>Faster iteration on design changes</li>
+                    <li>Better understanding of component interactions</li>
+                </ul>
+            </div>
+            
+            <div class="data-structures">
+                <h3>Key Data Structures</h3>
+                <ul>
+                    <li><strong>Agent State:</strong> Current properties of each component</li>
+                    <li><strong>Agent Parameters:</strong> Physical characteristics of components</li>
+                    <li><strong>Environment State:</strong> Track conditions, car inputs</li>
+                    <li><strong>Connection Graph:</strong> Relationships between components</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="rl" class="algorithm-container section">
+            <h2>2. Reinforcement Learning</h2>
+            
+            <h3>Purpose</h3>
+            <p>Optimize system response to inputs and simulate complex scenarios like crash avoidance</p>
+            
+            <h3>Implementation</h3>
+            <div class="code-block">
+<pre>import torch
+import torch.nn as nn
+import torch.optim as optim
+import numpy as np
+from collections import deque
+import random
+
+class DQNAgent:
+    def __init__(self, state_dim, action_dim, hidden_dim=128):
+        """
+        Initialize DQN agent
+        
+        Args:
+            state_dim: Dimension of state space
+            action_dim: Dimension of action space
+            hidden_dim: Size of hidden layers
+        """
+        self.q_network = QNetwork(state_dim, action_dim, hidden_dim)
+        self.target_network = QNetwork(state_dim, action_dim, hidden_dim)
+        self.target_network.load_state_dict(self.q_network.state_dict())
+        
+        self.optimizer = optim.Adam(self.q_network.parameters(), lr=0.001)
+        self.memory = deque(maxlen=10000)
+        self.batch_size = 64
+        self.gamma = 0.99
+        self.epsilon = 1.0
+        self.epsilon_min = 0.01
+        self.epsilon_decay = 0.995
+    
+    def act(self, state, training=True):
+        """Select action using epsilon-greedy policy"""
+        if training and random.random() < self.epsilon:
+            return random.randint(0, self.action_dim - 1)
+        
+        state_tensor = torch.FloatTensor(state).unsqueeze(0)
+        with torch.no_grad():
+            q_values = self.q_network(state_tensor)
+        return q_values.argmax().item()
+    
+    def remember(self, state, action, reward, next_state, done):
+        """Store experience in replay memory"""
+        self.memory.append((state, action, reward, next_state, done))
+    
+    def replay(self):
+        """Train on a batch of experiences from memory"""
+        if len(self.memory) < self.batch_size:
+            return
+        
+        batch = random.sample(self.memory, self.batch_size)
+        states, actions, rewards, next_states, dones = zip(*batch)
+        
+        states = torch.FloatTensor(np.array(states))
+        actions = torch.LongTensor(actions)
+        rewards = torch.FloatTensor(rewards)
+        next_states = torch.FloatTensor(np.array(next_states))
+        dones = torch.FloatTensor(dones)
+        
+        # Current Q values
+        current_q = self.q_network(states).gather(1, actions.unsqueeze(1))
+        
+        # Target Q values
+        with torch.no_grad():
+            next_q = self.target_network(next_states).max(1)[0]
+            target_q = rewards + (1 - dones) * self.gamma * next_q
+        
+        # Compute loss and update
+        loss = nn.MSELoss()(current_q.squeeze(), target_q)
+        self.optimizer.zero_grad()
+        loss.backward()
+        self.optimizer.step()
+        
+        # Decay epsilon
+        self.epsilon = max(self.epsilon_min, self.epsilon * self.epsilon_decay)
+    
+    def update_target_network(self):
+        """Update target network with Q-network weights"""
+        self.target_network.load_state_dict(self.q_network.state_dict())
+
+class QNetwork(nn.Module):
+    def __init__(self, state_dim, action_dim, hidden_dim):
+        super().__init__()
+        self.fc1 = nn.Linear(state_dim, hidden_dim)
+        self.fc2 = nn.Linear(hidden_dim, hidden_dim)
+        self.fc3 = nn.Linear(hidden_dim, action_dim)
+        
+    def forward(self, x):
+        x = torch.relu(self.fc1(x))
+        x = torch.relu(self.fc2(x))
+        return self.fc3(x)
+
+class RacingEnvironment:
+    def __init__(self, digital_twin_system):
+        """
+        Initialize racing environment for RL
+        
+        Args:
+            digital_twin_system: Digital twin to use as environment
+        """
+        self.digital_twin = digital_twin_system
+        self.state_vars = [
+            'car_velocity', 
+            'engine_rpm',
+            'tire_temperature',
+            'track_temperature'
+        ]
+    
+    def reset(self):
+        """Reset environment to initial state"""
+        self.digital_twin.time = 0
+        self.digital_twin.environment.update({
+            'car_velocity': 0,
+            'throttle_input': 0,
+            'steering_input': 0
+        })
+        return self._get_state()
+    
+    def step(self, action):
+        """
+        Execute one time step in the environment
+        
+        Args:
+            action: Tuple of (throttle, steering) actions
+        """
+        throttle, steering = action
+        self.digital_twin.update(0.1, {
+            'throttle_input': throttle,
+            'steering_input': steering
+        })
+        
+        # Get next state
+        next_state = self._get_state()
+        
+        # Calculate reward
+        velocity = self.digital_twin.environment['car_velocity']
+        tire_temp = self.digital_twin.agents['tire'].state['temperature']
+        reward = velocity - 0.1 * abs(tire_temp - 100)  # Reward speed while keeping tires ~100°C
+        
+        # Check done condition
+        done = tire_temp > 150 or self.digital_twin.time > 60
+        
+        return next_state, reward, done, {}
+    
+    def _get_state(self):
+        """Extract state vector from digital twin"""
+        state = [
+            self.digital_twin.environment['car_velocity'],
+            self.digital_twin.agents['engine'].state['rpm'],
+            self.digital_twin.agents['tire'].state['temperature'],
+            self.digital_twin.environment['track_temperature']
+        ]
+        return np.array(state, dtype=np.float32)
+
+# Example usage:
+# digital_twin = ...  # From previous example
+# env = RacingEnvironment(digital_twin)
+# agent = DQNAgent(state_dim=4, action_dim=5)  # 5 discrete actions
+# for episode in range(1000):
+#     state = env.reset()
+#     total_reward = 0
+#     while True:
+#         action = agent.act(state)
+#         next_state, reward, done, _ = env.step(action)
+#         agent.remember(state, action, reward, next_state, done)
+#         agent.replay()
+#         state = next_state
+#         total_reward += reward
+#         if done:
+#             break
+#     if episode % 10 == 0:
+#         agent.update_target_network()</pre>
+            </div>
+            
+            <div class="business-impact">
+                <h3>Business Impact</h3>
+                <ul>
+                    <li>Optimized race strategies through AI-driven simulations</li>
+                    <li>Improved safety through simulated crash avoidance training</li>
+                    <li>20% faster lap times in simulation through optimized control</li>
+                    <li>Reduced risk in testing dangerous scenarios</li>
+                </ul>
+            </div>
+            
+            <div class="data-structures">
+                <h3>Key Data Structures</h3>
+                <ul>
+                    <li><strong>Replay Buffer:</strong> Stores past experiences for training</li>
+                    <li><strong>Neural Networks:</strong> Q-networks for value estimation</li>
+                    <li><strong>State/Action Spaces:</strong> Definitions of possible states and actions</li>
+                    <li><strong>Reward Function:</strong> Encodes desired optimization objectives</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="sim2real" class="algorithm-container section">
+            <h2>3. Sim2Real Transfer Learning</h2>
+            
+            <h3>Purpose</h3>
+            <p>Bridge the reality gap between simulation and real-world application of learned policies</p>
+            
+            <h3>Implementation</h3>
+            <div class="code-block">
+<pre>import torch
+import torch.nn as nn
+from torch.utils.data import DataLoader, TensorDataset
+from sklearn.model_selection import train_test_split
+
+class DomainAdaptationModel(nn.Module):
+    def __init__(self, feature_dim, num_classes):
+        super().__init__()
+        # Feature extractor (shared between domains)
+        self.feature_extractor = nn.Sequential(
+            nn.Linear(feature_dim, 128),
+            nn.ReLU(),
+            nn.Linear(128, 64),
+            nn.ReLU()
+        )
+        
+        # Label predictor
+        self.label_predictor = nn.Sequential(
+            nn.Linear(64, 32),
+            nn.ReLU(),
+            nn.Linear(32, num_classes)
+        )
+        
+        # Domain classifier
+        self.domain_classifier = nn.Sequential(
+            nn.Linear(64, 32),
+            nn.ReLU(),
+            nn.Linear(32, 2)
+        )
+    
+    def forward(self, x, alpha=1.0):
+        """Forward pass with gradient reversal for domain adaptation"""
+        features = self.feature_extractor(x)
+        
+        # Reverse gradient for domain classifier
+        reverse_features = GradientReversal.apply(features, alpha)
+        
+        # Class predictions
+        class_pred = self.label_predictor(features)
+        
+        # Domain predictions
+        domain_pred = self.domain_classifier(reverse_features)
+        
+        return class_pred, domain_pred
+
+class GradientReversal(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, x, alpha):
+        ctx.alpha = alpha
+        return x.view_as(x)
+    
+    @staticmethod
+    def backward(ctx, grad_output):
+        return grad_output.neg() * ctx.alpha, None
+
+class Sim2RealTransfer:
+    def __init__(self, feature_dim, num_classes):
+        self.model = DomainAdaptationModel(feature_dim, num_classes)
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=0.001)
+        self.criterion = nn.CrossEntropyLoss()
+    
+    def train(self, X_sim, y_sim, X_real, epochs=100, batch_size=32):
+        """
+        Train model with domain adaptation
+        
+        Args:
+            X_sim: Simulation data features
+            y_sim: Simulation data labels
+            X_real: Real-world data features (unlabeled)
+            epochs: Number of training epochs
+            batch_size: Batch size for training
+        """
+        # Create datasets
+        sim_dataset = TensorDataset(torch.FloatTensor(X_sim), 
+                                  torch.LongTensor(y_sim))
+        real_dataset = TensorDataset(torch.FloatTensor(X_real))
+        
+        # Create loaders
+        sim_loader = DataLoader(sim_dataset, batch_size=batch_size, shuffle=True)
+        real_loader = DataLoader(real_dataset, batch_size=batch_size, shuffle=True)
+        
+        for epoch in range(epochs):
+            # Progressively increase domain adaptation weight
+            alpha = 2. * epoch / epochs - 1.
+            
+            # Zip the loaders to iterate together
+            for (sim_X, sim_y), (real_X,) in zip(sim_loader, real_loader):
+                # Combine data from both domains
+                X = torch.cat([sim_X, real_X], dim=0)
+                
+                # Create domain labels (0 for sim, 1 for real)
+                domain_labels = torch.cat([
+                    torch.zeros(sim_X.size(0)),
+                    torch.ones(real_X.size(0))
+                ], dim=0).long()
+                
+                # Forward pass
+                class_pred, domain_pred = self.model(X, alpha)
+                
+                # Calculate losses
+                task_loss = self.criterion(class_pred[:sim_X.size(0)], sim_y)
+                domain_loss = self.criterion(domain_pred, domain_labels)
+                total_loss = task_loss + 0.5 * domain_loss
+                
+                # Backward pass and optimize
+                self.optimizer.zero_grad()
+                total_loss.backward()
+                self.optimizer.step()
+            
+            if epoch % 10 == 0:
+                print(f"Epoch {epoch}: Task Loss {task_loss.item():.4f}, "
+                      f"Domain Loss {domain_loss.item():.4f}")
+    
+    def predict(self, X):
+        """Make predictions on new data"""
+        with torch.no_grad():
+            class_pred, _ = self.model(torch.FloatTensor(X))
+            return torch.argmax(class_pred, dim=1).numpy()
+
+# Example usage:
+# X_sim, y_sim = load_simulation_data()  # Labeled simulation data
+# X_real = load_real_data()  # Unlabeled real-world data
+# 
+# # Align feature spaces
+# X_sim = preprocess(X_sim)
+# X_real = preprocess(X_real)
+# 
+# # Train model
+# transfer = Sim2RealTransfer(feature_dim=X_sim.shape[1], num_classes=5)
+# transfer.train(X_sim, y_sim, X_real)
+# 
+# # Evaluate on real test data
+# X_test, y_test = load_real_test_data()
+# predictions = transfer.predict(X_test)</pre>
+            </div>
+            
+            <div class="business-impact">
+                <h3>Business Impact</h3>
+                <ul>
+                    <li>30% reduction in real-world testing requirements</li>
+                    <li>Faster deployment of simulation-optimized parameters</li>
+                    <li>Improved safety by validating in simulation first</li>
+                    <li>More robust systems that generalize to real conditions</li>
+                </ul>
+            </div>
+            
+            <div class="data-structures">
+                <h3>Key Data Structures</h3>
+                <ul>
+                    <li><strong>Feature Vectors:</strong> Aligned representations of sim/real data</li>
+                    <li><strong>Domain Labels:</strong> Indicators for simulation vs real data</li>
+                    <li><strong>Gradient Reversal Layer:</strong> Enforces domain-invariant features</li>
+                    <li><strong>Adaptation Models:</strong> Shared feature extractors with task-specific heads</li>
+                </ul>
+            </div>
+        </div>
+
+        <section id="system-integration" class="section">
+            <h2>System Integration and Workflow</h2>
+            
+            <h3>Digital Twin Pipeline</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Stage</th>
+                        <th>Components</th>
+                        <th>Technologies</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Data Acquisition</td>
+                        <td>Sensor data, CAD models, telemetry</td>
+                        <td>IoT protocols, CAD software</td>
+                    </tr>
+                    <tr>
+                        <td>Model Construction</td>
+                        <td>Physics models, ML components</td>
+                        <td>PyTorch, TensorFlow, ANSYS</td>
+                    </tr>
+                    <tr>
+                        <td>Simulation Engine</td>
+                        <td>Numerical solvers, visualization</td>
+                        <td>Unity, Unreal Engine, ROS</td>
+                    </tr>
+                    <tr>
+                        <td>Deployment</td>
+                        <td>Real-time interfaces, control systems</td>
+                        <td>Kubernetes, Docker, FPGA</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3>Data Requirements</h3>
+            <div class="data-structures">
+                <ul>
+                    <li><strong>Physical Models:</strong> CAD geometries, material properties</li>
+                    <li><strong>Sensor Data:</strong> Real-time telemetry from vehicles</li>
+                    <li><strong>Simulation Parameters:</strong> Track conditions, weather data</li>
+                    <li><strong>Control Policies:</strong> Learned strategies for optimization</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <button class="back-to-top" title="Back to top">↑</button>
+
+    <script>
+        // Scroll to reveal animations
+        document.addEventListener('DOMContentLoaded', function() {
+            const sections = document.querySelectorAll('.section');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, {threshold: 0.1});
+            
+            sections.forEach(section => {
+                observer.observe(section);
+            });
+            
+            // Back to top button
+            const backToTopButton = document.querySelector('.back-to-top');
+            
+            window.addEventListener('scroll', () => {
+                if (window.pageYOffset > 300) {
+                    backToTopButton.classList.add('visible');
+                } else {
+                    backToTopButton.classList.remove('visible');
+                }
+            });
+            
+            backToTopButton.addEventListener('click', () => {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
+            
+            // Dark mode toggle
+            const darkModeToggle = document.createElement('button');
+            darkModeToggle.textContent = '🌓';
+            darkModeToggle.style.position = 'fixed';
+            darkModeToggle.style.bottom = '2rem';
+            darkModeToggle.style.right = '2rem';
+            darkModeToggle.style.padding = '0.8rem';
+            darkModeToggle.style.background = 'var(--primary)';
+            darkModeToggle.style.color = '#fff';
+            darkModeToggle.style.border = 'none';
+            darkModeToggle.style.borderRadius = '50%';
+            darkModeToggle.style.cursor = 'pointer';
+            darkModeToggle.style.zIndex = '999';
+            darkModeToggle.style.transition = 'all 0.3s ease';
+            darkModeToggle.addEventListener('click', () => {
+                document.body.classList.toggle('dark');
+            });
+            document.body.appendChild(darkModeToggle);
+        });
+    </script>
+</body>
+</html>

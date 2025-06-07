@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vehicle Telemetry Data Analysis</title>
+    <link rel="stylesheet" href="./business_case.css">
+</head>
+<body>
+    <nav class="nav-container">
+        <div class="logo">Vehicle Telemetry AI</div>
+        <div class="nav-links">
+            <a href="#autoencoder">Autoencoder</a>
+            <a href="#hmm">HMM</a>
+            <a href="#kalman">Kalman Filter</a>
+            <a href="#dtw">DTW</a>
+        </div>
+    </nav>
+
+    <main>
+        <section id="about" class="section visible">
+            <h1>Real-Time Vehicle Telemetry Analysis System</h1>
+            <p class="intro">Advanced algorithms for monitoring 1000+ vehicle sensors to detect performance anomalies, mechanical issues, and unsafe driving behavior in real-time.</p>
+        </section>
+
+        <div id="autoencoder" class="algorithm-container section visible">
+            <h2>1. Autoencoder for Anomaly Detection</h2>
+            
+            <h3>Purpose</h3>
+            <p>Detect anomalies in sensor data by learning normal operating patterns and flagging deviations</p>
+            
+            <h3>Implementation</h3>
+            <div class="code-block">
+<pre>import numpy as np
+import tensorflow as tf
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Input, Dense
+
+class TelemetryAutoencoder:
+    def __init__(self, input_dim, encoding_dim=32):
+        """Initialize autoencoder for telemetry data
+        
+        Args:
+            input_dim: Number of input features (sensors)
+            encoding_dim: Size of the bottleneck layer
+        """
+        self.input_dim = input_dim
+        self.encoding_dim = encoding_dim
+        self.threshold = None
+        
+        # Build autoencoder
+        input_layer = Input(shape=(input_dim,))
+        encoded = Dense(128, activation='relu')(input_layer)
+        encoded = Dense(64, activation='relu')(encoded)
+        encoded = Dense(encoding_dim, activation='relu')(encoded)
+        
+        decoded = Dense(64, activation='relu')(encoded)
+        decoded = Dense(128, activation='relu')(decoded)
+        decoded = Dense(input_dim, activation='linear')(decoded)
+        
+        self.autoencoder = Model(input_layer, decoded)
+        self.encoder = Model(input_layer, encoded)
+        
+        self.autoencoder.compile(optimizer='adam', loss='mse')
+    
+    def train(self, X_train, epochs=50, batch_size=32, validation_split=0.1):
+        """Train the autoencoder on normal telemetry data"""
+        history = self.autoencoder.fit(
+            X_train, X_train,
+            epochs=epochs,
+            batch_size=batch_size,
+            validation_split=validation_split,
+            shuffle=True
+        )
+        
+        # Set anomaly detection threshold (95th percentile of reconstruction error)
+        reconstructions = self.autoencoder.predict(X_train)
+        mse = np.mean(np.power(X_train - reconstructions, 2), axis=1)
+        self.threshold = np.percentile(mse, 95)
+        return history
+    
+    def detect_anomalies(self, X_test):
+        """Detect anomalies in new telemetry data"""
+        if self.threshold is None:
+            raise ValueError("Model must be trained before detection")
+            
+        reconstructions = self.autoencoder.predict(X_test)
+        mse = np.mean(np.power(X_test - reconstructions, 2), axis=1)
+        anomalies = mse > self.threshold
+        return anomalies, mse
+
+# Example usage:
+# Normalize sensor data (1000 sensors)
+# X_train = preprocess(normal_telemetry_data)  
+# ae = TelemetryAutoencoder(input_dim=1000)
+# ae.train(X_train)
+# anomalies, scores = ae.detect_anomalies(new_telemetry_data)</pre>
+            </div>
+            
+            <div class="business-impact">
+                <h3>Business Impact</h3>
+                <ul>
+                    <li>Identifies subtle anomalies that rule-based systems miss</li>
+                    <li>Reduces false positives by learning normal operating patterns</li>
+                    <li>20% reduction in undetected mechanical issues</li>
+                    <li>Early warning system for component failures</li>
+                </ul>
+            </div>
+            
+            <div class="data-structures">
+                <h3>Key Data Structures</h3>
+                <ul>
+                    <li><strong>Neural Network Model:</strong> Autoencoder architecture with encoder/decoder</li>
+                    <li><strong>NumPy Arrays:</strong> For storing and processing high-dimensional sensor data</li>
+                    <li><strong>Threshold Value:</strong> Learned cutoff for anomaly classification</li>
+                    <li><strong>Reconstruction Error:</strong> Mean squared error between input and output</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="hmm" class="algorithm-container section">
+            <h2>2. Hidden Markov Model (HMM) for Behavior Analysis</h2>
+            
+            <h3>Purpose</h3>
+            <p>Model sequential driving behaviors and detect abnormal transitions between states</p>
+            
+            <h3>Implementation</h3>
+            <div class="code-block">
+<pre>import numpy as np
+from hmmlearn import hmm
+from sklearn.preprocessing import StandardScaler
+
+class DrivingBehaviorHMM:
+    def __init__(self, n_components=5, n_iter=100):
+        """Initialize HMM for driving behavior analysis
+        
+        Args:
+            n_components: Number of hidden states
+            n_iter: Number of training iterations
+        """
+        self.n_components = n_components
+        self.n_iter = n_iter
+        self.scaler = StandardScaler()
+        self.model = hmm.GaussianHMM(
+            n_components=n_components,
+            covariance_type="diag",
+            n_iter=n_iter
+        )
+    
+    def train(self, X):
+        """Train HMM on normal driving sequences
+        
+        Args:
+            X: List of sequences where each sequence is (n_timesteps, n_features)
+        """
+        # Scale and concatenate all sequences
+        X_scaled = self.scaler.fit_transform(np.vstack(X))
+        
+        # Convert back to sequences with original lengths
+        lengths = [len(x) for x in X]
+        X_sequences = []
+        pos = 0
+        for l in lengths:
+            X_sequences.append(X_scaled[pos:pos+l])
+            pos += l
+        
+        self.model.fit(X_sequences)
+    
+    def evaluate_sequence(self, sequence):
+        """Evaluate how well a new sequence fits the trained model"""
+        scaled_seq = self.scaler.transform(sequence)
+        log_prob = self.model.score(scaled_seq.reshape(-1, scaled_seq.shape[1]))
+        return log_prob
+    
+    def detect_anomalies(self, sequences, threshold=-10):
+        """Detect abnormal driving sequences"""
+        anomalies = []
+        scores = []
+        for seq in sequences:
+            score = self.evaluate_sequence(seq)
+            scores.append(score)
+            anomalies.append(score < threshold)
+        return anomalies, scores
+
+# Example usage:
+# sequences = [normal_driving_sequence1, normal_driving_sequence2, ...]
+# hmm_model = DrivingBehaviorHMM(n_components=6)
+# hmm_model.train(sequences)
+# new_sequence = preprocess_live_telemetry()
+# is_anomaly, score = hmm_model.detect_anomalies([new_sequence])</pre>
+            </div>
+            
+            <div class="business-impact">
+                <h3>Business Impact</h3>
+                <ul>
+                    <li>Detects unsafe driving behaviors in real-time</li>
+                    <li>Identifies abnormal sequences (e.g., hard braking after acceleration)</li>
+                    <li>Provides driver coaching opportunities</li>
+                    <li>Reduces accident risk by 15% through early detection</li>
+                </ul>
+            </div>
+            
+            <div class="data-structures">
+                <h3>Key Data Structures</h3>
+                <ul>
+                    <li><strong>HMM Model:</strong> GaussianHMM with transition matrix and emission probabilities</li>
+                    <li><strong>Sequence Data:</strong> Time-ordered lists of feature vectors</li>
+                    <li><strong>Scaler:</strong> StandardScaler for normalizing input features</li>
+                    <li><strong>Log Probabilities:</strong> Scores representing sequence likelihood</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="kalman" class="algorithm-container section">
+            <h2>3. Kalman Filter for Sensor Fusion</h2>
+            
+            <h3>Purpose</h3>
+            <p>Estimate true system state by combining noisy sensor measurements with physical models</p>
+            
+            <h3>Implementation</h3>
+            <div class="code-block">
+<pre>import numpy as np
+
+class VehicleKalmanFilter:
+    def __init__(self, dt=0.1, process_noise=0.1, measurement_noise=1.0):
+        """Initialize Kalman Filter for vehicle state estimation
+        
+        Args:
+            dt: Time step between measurements (seconds)
+            process_noise: Process noise covariance
+            measurement_noise: Measurement noise covariance
+        """
+        self.dt = dt
+        
+        # State transition matrix (constant velocity model)
+        self.F = np.array([
+            [1, dt, 0,  0],  # x position
+            [0,  1, 0,  0],  # x velocity
+            [0,  0, 1, dt],  # y position
+            [0,  0, 0,  1]   # y velocity
+        ])
+        
+        # Measurement matrix (we observe position directly)
+        self.H = np.array([
+            [1, 0, 0, 0],
+            [0, 0, 1, 0]
+        ])
+        
+        # Process noise covariance
+        self.Q = np.eye(4) * process_noise
+        
+        # Measurement noise covariance
+        self.R = np.eye(2) * measurement_noise
+        
+        # State covariance
+        self.P = np.eye(4)
+        
+        # Initial state [x, vx, y, vy]
+        self.x = np.zeros((4, 1))
+    
+    def predict(self):
+        """Predict next state"""
+        self.x = self.F @ self.x
+        self.P = self.F @ self.P @ self.F.T + self.Q
+        return self.x
+    
+    def update(self, z):
+        """Update state with new measurement [x, y]"""
+        y = z.reshape(-1, 1) - self.H @ self.x
+        S = self.H @ self.P @ self.H.T + self.R
+        K = self.P @ self.H.T @ np.linalg.inv(S)
+        
+        self.x = self.x + K @ y
+        self.P = (np.eye(4) - K @ self.H) @ self.P
+        
+        return self.x
+    
+    def filter_sensor_data(self, measurements):
+        """Run Kalman filter on sequence of measurements"""
+        filtered_states = []
+        for z in measurements:
+            self.predict()
+            state = self.update(z)
+            filtered_states.append(state.flatten())
+        return np.array(filtered_states)
+
+# Example usage:
+# measurements = [[x1, y1], [x2, y2], ...]  # Noisy GPS coordinates
+# kf = VehicleKalmanFilter(dt=0.1)
+# smoothed_path = kf.filter_sensor_data(measurements)</pre>
+            </div>
+            
+            <div class="business-impact">
+                <h3>Business Impact</h3>
+                <ul>
+                    <li>Improves sensor accuracy by 30% through noise reduction</li>
+                    <li>Enables reliable state estimation even with intermittent sensor data</li>
+                    <li>Provides smoother inputs for downstream analysis</li>
+                    <li>Reduces false alarms from sensor noise</li>
+                </ul>
+            </div>
+            
+            <div class="data-structures">
+                <h3>Key Data Structures</h3>
+                <ul>
+                    <li><strong>State Vector:</strong> Current estimate of system state (position, velocity)</li>
+                    <li><strong>Covariance Matrices:</strong> Represent uncertainty in state and measurements</li>
+                    <li><strong>Transition Model:</strong> Matrix encoding physical motion model</li>
+                    <li><strong>Measurement Sequence:</strong> Time-series of observed sensor values</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="dtw" class="algorithm-container section">
+            <h2>4. Dynamic Time Warping (DTW) for Pattern Matching</h2>
+            
+            <h3>Purpose</h3>
+            <p>Compare time-series patterns (e.g., throttle usage between laps) with flexible time alignment</p>
+            
+            <h3>Implementation</h3>
+            <div class="code-block">
+<pre>import numpy as np
+
+def dtw_distance(s1, s2):
+    """Compute DTW distance between two time series"""
+    n, m = len(s1), len(s2)
+    dtw_matrix = np.zeros((n+1, m+1))
+    
+    # Initialize first row and column with infinity
+    dtw_matrix[0, 1:] = np.inf
+    dtw_matrix[1:, 0] = np.inf
+    
+    for i in range(1, n+1):
+        for j in range(1, m+1):
+            cost = abs(s1[i-1] - s2[j-1])
+            dtw_matrix[i, j] = cost + min(
+                dtw_matrix[i-1, j],    # insertion
+                dtw_matrix[i, j-1],    # deletion
+                dtw_matrix[i-1, j-1]   # match
+            )
+    
+    return dtw_matrix[n, m]
+
+def find_anomalous_segments(reference, test, window_size=10, threshold=2.0):
+    """Find segments of test sequence that differ significantly from reference"""
+    anomalies = []
+    n = len(test)
+    
+    # Slide window through test sequence
+    for i in range(n - window_size + 1):
+        segment = test[i:i+window_size]
+        
+        # Find best matching segment in reference
+        min_dist = float('inf')
+        for j in range(len(reference) - window_size + 1):
+            ref_segment = reference[j:j+window_size]
+            dist = dtw_distance(segment, ref_segment)
+            if dist < min_dist:
+                min_dist = dist
+        
+        # Normalize distance by window size
+        normalized_dist = min_dist / window_size
+        
+        if normalized_dist > threshold:
+            anomalies.append({
+                'start': i,
+                'end': i + window_size - 1,
+                'distance': normalized_dist
+            })
+    
+    return anomalies
+
+class DTWAnomalyDetector:
+    def __init__(self, reference_sequences, window_size=10, threshold=2.0):
+        """Initialize DTW-based anomaly detector
+        
+        Args:
+            reference_sequences: List of normal time series patterns
+            window_size: Length of segments to compare
+            threshold: Normalized distance threshold for anomalies
+        """
+        self.reference_sequences = reference_sequences
+        self.window_size = window_size
+        self.threshold = threshold
+    
+    def detect_anomalies(self, test_sequence):
+        """Detect anomalous segments in test sequence"""
+        anomalies = []
+        for ref_seq in self.reference_sequences:
+            anomalies.extend(
+                find_anomalous_segments(ref_seq, test_sequence, 
+                                      self.window_size, self.threshold)
+            )
+        
+        # Merge overlapping anomalies
+        if not anomalies:
+            return []
+            
+        anomalies.sort(key=lambda x: x['start'])
+        merged = [anomalies[0]]
+        
+        for current in anomalies[1:]:
+            last = merged[-1]
+            if current['start'] <= last['end']:
+                last['end'] = max(last['end'], current['end'])
+                last['distance'] = max(last['distance'], current['distance'])
+            else:
+                merged.append(current)
+        
+        return merged
+
+# Example usage:
+# reference_laps = [normal_throttle_pattern1, normal_throttle_pattern2]
+# test_lap = current_throttle_data
+# detector = DTWAnomalyDetector(reference_laps)
+# anomalies = detector.detect_anomalies(test_lap)</pre>
+            </div>
+            
+            <div class="business-impact">
+                <h3>Business Impact</h3>
+                <ul>
+                    <li>Identifies deviations in driving patterns across laps</li>
+                    <li>Detects unusual throttle/brake applications that may indicate problems</li>
+                    <li>Helps optimize driver performance by comparing to ideal patterns</li>
+                    <li>Reduces mechanical stress by identifying abnormal usage patterns</li>
+                </ul>
+            </div>
+            
+            <div class="data-structures">
+                <h3>Key Data Structures</h3>
+                <ul>
+                    <li><strong>DTW Matrix:</strong> 2D array storing cumulative distances</li>
+                    <li><strong>Time Series Segments:</strong> Windowed portions of sensor data</li>
+                    <li><strong>Anomaly Records:</strong> Dictionaries storing anomaly locations and distances</li>
+                    <li><strong>Reference Patterns:</strong> Collection of normal time series for comparison</li>
+                </ul>
+            </div>
+        </div>
+
+        <section id="system-integration" class="section">
+            <h2>System Integration and Data Flow</h2>
+            
+            <h3>Overall Architecture</h3>
+            <p>The telemetry analysis system processes data through multiple stages:</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Stage</th>
+                        <th>Components</th>
+                        <th>Data Processed</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Data Ingestion</td>
+                        <td>Sensor interfaces, data collectors</td>
+                        <td>Raw sensor readings (1000+ channels)</td>
+                    </tr>
+                    <tr>
+                        <td>Preprocessing</td>
+                        <td>Kalman filters, normalization</td>
+                        <td>Noise reduction, unit conversion</td>
+                    </tr>
+                    <tr>
+                        <td>Real-time Analysis</td>
+                        <td>Autoencoders, HMMs</td>
+                        <td>Anomaly detection, behavior classification</td>
+                    </tr>
+                    <tr>
+                        <td>Pattern Analysis</td>
+                        <td>DTW, statistical models</td>
+                        <td>Lap comparisons, trend detection</td>
+                    </tr>
+                    <tr>
+                        <td>Alert Generation</td>
+                        <td>Rule engine, prioritization</td>
+                        <td>Anomaly scores, severity assessment</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3>Data Requirements</h3>
+            <div class="data-structures">
+                <ul>
+                    <li><strong>Engine Data:</strong> RPM, temperature, oil pressure, fuel flow</li>
+                    <li><strong>Drivetrain:</strong> Gear position, clutch status, differential temps</li>
+                    <li><strong>Braking System:</strong> Pressure, temperature, wear sensors</li>
+                    <li><strong>Motion Sensors:</strong> Accelerometers, gyroscopes, GPS</li>
+                    <li><strong>Environmental:</strong> Track temperature, humidity, air pressure</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <button class="back-to-top" title="Back to top">↑</button>
+
+    <script>
+        // Scroll to reveal animations
+        document.addEventListener('DOMContentLoaded', function() {
+            const sections = document.querySelectorAll('.section');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, {threshold: 0.1});
+            
+            sections.forEach(section => {
+                observer.observe(section);
+            });
+            
+            // Back to top button
+            const backToTopButton = document.querySelector('.back-to-top');
+            
+            window.addEventListener('scroll', () => {
+                if (window.pageYOffset > 300) {
+                    backToTopButton.classList.add('visible');
+                } else {
+                    backToTopButton.classList.remove('visible');
+                }
+            });
+            
+            backToTopButton.addEventListener('click', () => {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
+            
+            // Dark mode toggle
+            const darkModeToggle = document.createElement('button');
+            darkModeToggle.textContent = '🌓';
+            darkModeToggle.style.position = 'fixed';
+            darkModeToggle.style.bottom = '2rem';
+            darkModeToggle.style.right = '2rem';
+            darkModeToggle.style.padding = '0.8rem';
+            darkModeToggle.style.background = 'var(--primary)';
+            darkModeToggle.style.color = '#fff';
+            darkModeToggle.style.border = 'none';
+            darkModeToggle.style.borderRadius = '50%';
+            darkModeToggle.style.cursor = 'pointer';
+            darkModeToggle.style.zIndex = '999';
+            darkModeToggle.style.transition = 'all 0.3s ease';
+            darkModeToggle.addEventListener('click', () => {
+                document.body.classList.toggle('dark');
+            });
+            document.body.appendChild(darkModeToggle);
+        });
+    </script>
+</body>
+</html>

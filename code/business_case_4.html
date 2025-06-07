@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predictive Maintenance System</title>
+    <link rel="stylesheet" href="./business_case.css">
+</head>
+<body>
+    <nav class="nav-container">
+        <div class="logo">Predictive Maintenance</div>
+        <div class="nav-links">
+            <a href="#random-forest">Random Forest/XGBoost</a>
+            <a href="#survival">Survival Analysis</a>
+            <a href="#lstm">LSTM Networks</a>
+            <a href="#clustering">Clustering</a>
+        </div>
+    </nav>
+
+    <main>
+        <section id="about" class="section visible">
+            <h1>Predictive Maintenance System</h1>
+            <p class="intro">Advanced machine learning models to predict component failures before they occur, reducing race retirements and maintenance costs.</p>
+        </section>
+
+        <div id="random-forest" class="algorithm-container section visible">
+            <h2>1. Random Forest / XGBoost</h2>
+            
+            <h3>Purpose</h3>
+            <p>Classify whether a part is likely to fail based on usage metrics and sensor data</p>
+            
+            <h3>Implementation</h3>
+            <div class="code-block">
+<pre>import pandas as pd
+import numpy as np
+from sklearn.ensemble import RandomForestClassifier
+from xgboost import XGBClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report, roc_auc_score
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+
+class PredictiveMaintenanceClassifier:
+    def __init__(self, model_type='random_forest'):
+        """
+        Initialize predictive maintenance classifier
+        
+        Args:
+            model_type: 'random_forest' or 'xgboost'
+        """
+        self.model_type = model_type
+        self.pipeline = self._build_pipeline()
+    
+    def _build_pipeline(self):
+        """Build data processing and modeling pipeline"""
+        steps = [
+            ('scaler', StandardScaler()),
+            ('model', RandomForestClassifier(n_estimators=100, 
+                                            max_depth=10,
+                                            class_weight='balanced') 
+             if self.model_type == 'random_forest' 
+             else XGBClassifier(n_estimators=100,
+                               max_depth=6,
+                               scale_pos_weight=1))
+        ]
+        return Pipeline(steps)
+    
+    def load_data(self, filepath):
+        """Load and preprocess maintenance data"""
+        df = pd.read_csv(filepath)
+        
+        # Feature engineering
+        df['vibration_rolling_avg'] = df['vibration'].rolling(5).mean()
+        df['temp_pressure_ratio'] = df['oil_temperature'] / df['oil_pressure']
+        
+        # Handle missing values
+        df.fillna(method='ffill', inplace=True)
+        
+        # Split features and target
+        X = df[['vibration', 'vibration_rolling_avg', 
+                'operating_hours', 'oil_temperature',
+                'oil_pressure', 'temp_pressure_ratio']]
+        y = df['failure'].astype(int)
+        
+        return train_test_split(X, y, test_size=0.2, random_state=42)
+    
+    def train(self, X_train, y_train):
+        """Train the model"""
+        self.pipeline.fit(X_train, y_train)
+    
+    def evaluate(self, X_test, y_test):
+        """Evaluate model performance"""
+        y_pred = self.pipeline.predict(X_test)
+        y_proba = self.pipeline.predict_proba(X_test)[:, 1]
+        
+        print(classification_report(y_test, y_pred))
+        print(f"ROC AUC: {roc_auc_score(y_test, y_proba):.4f}")
+    
+    def predict_failure(self, component_data):
+        """Predict failure probability for new component data"""
+        return self.pipeline.predict_proba(component_data)[:, 1]
+
+# Example usage:
+# pm_classifier = PredictiveMaintenanceClassifier(model_type='xgboost')
+# X_train, X_test, y_train, y_test = pm_classifier.load_data('component_failure_data.csv')
+# pm_classifier.train(X_train, y_train)
+# pm_classifier.evaluate(X_test, y_test)
+# new_data = pd.DataFrame([[...]])  # New component metrics
+# failure_prob = pm_classifier.predict_failure(new_data)</pre>
+            </div>
+            
+            <div class="business-impact">
+                <h3>Business Impact</h3>
+                <ul>
+                    <li>Early detection of failing components reduces race retirements by 25%</li>
+                    <li>Optimizes maintenance schedules to minimize downtime</li>
+                    <li>Reduces unnecessary part replacements through accurate predictions</li>
+                    <li>Improves safety by preventing catastrophic failures</li>
+                </ul>
+            </div>
+            
+            <div class="data-structures">
+                <h3>Key Data Structures</h3>
+                <ul>
+                    <li><strong>Feature Matrix:</strong> 2D array of component metrics (vibration, temperature, etc.)</li>
+                    <li><strong>Target Vector:</strong> Binary labels indicating failure (1) or normal operation (0)</li>
+                    <li><strong>Decision Trees:</strong> Ensemble of trees making predictions</li>
+                    <li><strong>Feature Importance:</strong> Ranking of most predictive features</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="survival" class="algorithm-container section">
+            <h2>2. Survival Analysis (Cox Proportional Hazard)</h2>
+            
+            <h3>Purpose</h3>
+            <p>Estimate how long a component will survive before failure based on operational conditions</p>
+            
+            <h3>Implementation</h3>
+            <div class="code-block">
+<pre>import pandas as pd
+import numpy as np
+from lifelines import CoxPHFitter
+from sklearn.preprocessing import StandardScaler
+
+class ComponentSurvivalAnalyzer:
+    def __init__(self):
+        """Initialize survival analysis model"""
+        self.scaler = StandardScaler()
+        self.model = CoxPHFitter(penalizer=0.1)
+    
+    def load_data(self, filepath):
+        """Load and preprocess survival data"""
+        df = pd.read_csv(filepath)
+        
+        # Convert to survival format
+        df['event'] = df['failure'].astype(int)
+        df['duration'] = df['operating_hours']
+        
+        # Feature engineering
+        df['vibration_trend'] = df.groupby('component_id')['vibration'].transform(
+            lambda x: x.rolling(5).mean().pct_change())
+        
+        # Select relevant features
+        features = ['vibration', 'oil_temperature', 'oil_pressure',
+                   'vibration_trend', 'age', 'previous_failures']
+        
+        return df[['duration', 'event'] + features]
+    
+    def train(self, df):
+        """Train the survival model"""
+        # Scale features
+        features = [col for col in df.columns if col not in ['duration', 'event']]
+        df[features] = self.scaler.fit_transform(df[features])
+        
+        # Fit Cox model
+        self.model.fit(df, duration_col='duration', event_col='event')
+    
+    def predict_survival(self, component_data):
+        """Predict survival function for a component"""
+        # Scale input data
+        features = [col for col in component_data.columns 
+                   if col not in ['duration', 'event']]
+        component_data[features] = self.scaler.transform(component_data[features])
+        
+        return self.model.predict_survival_function(component_data)
+    
+    def predict_median_lifetime(self, component_data):
+        """Predict median remaining useful life"""
+        return self.model.predict_median(component_data)
+    
+    def plot_hazard_ratios(self):
+        """Visualize feature importance via hazard ratios"""
+        return self.model.print_summary()
+
+# Example usage:
+# survival_analyzer = ComponentSurvivalAnalyzer()
+# survival_data = survival_analyzer.load_data('component_lifetime_data.csv')
+# survival_analyzer.train(survival_data)
+# new_component = pd.DataFrame([[...]])  # New component metrics
+# survival_curve = survival_analyzer.predict_survival(new_component)
+# median_life = survival_analyzer.predict_median_lifetime(new_component)</pre>
+            </div>
+            
+            <div class="business-impact">
+                <h3>Business Impact</h3>
+                <ul>
+                    <li>Accurate estimation of remaining component life enables optimal replacement scheduling</li>
+                    <li>Identifies high-risk components that need priority attention</li>
+                    <li>Reduces inventory costs through just-in-time part ordering</li>
+                    <li>Provides statistical confidence intervals for failure predictions</li>
+                </ul>
+            </div>
+            
+            <div class="data-structures">
+                <h3>Key Data Structures</h3>
+                <ul>
+                    <li><strong>Survival Data:</strong> Duration until event and event indicator</li>
+                    <li><strong>Cox Model:</strong> Partial likelihood function with hazard ratios</li>
+                    <li><strong>Survival Function:</strong> Probability of survival over time</li>
+                    <li><strong>Baseline Hazard:</strong> Underlying hazard function for the population</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="lstm" class="algorithm-container section">
+            <h2>3. LSTM Networks</h2>
+            
+            <h3>Purpose</h3>
+            <p>Model time-series degradation of parts to predict Remaining Useful Life (RUL)</p>
+            
+            <h3>Implementation</h3>
+            <div class="code-block">
+<pre>import numpy as np
+import pandas as pd
+from sklearn.preprocessing import MinMaxScaler
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import LSTM, Dense, Dropout
+from tensorflow.keras.callbacks import EarlyStopping
+from tensorflow.keras.optimizers import Adam
+
+class RULPredictor:
+    def __init__(self, time_steps=30, features=5):
+        """Initialize LSTM model for RUL prediction"""
+        self.time_steps = time_steps
+        self.features = features
+        self.scaler = MinMaxScaler()
+        self.model = self._build_model()
+    
+    def _build_model(self):
+        """Build LSTM network architecture"""
+        model = Sequential([
+            LSTM(64, input_shape=(self.time_steps, self.features), 
+                return_sequences=True),
+            Dropout(0.2),
+            LSTM(32),
+            Dropout(0.2),
+            Dense(16, activation='relu'),
+            Dense(1)
+        ])
+        
+        model.compile(optimizer=Adam(learning_rate=0.001),
+                     loss='mse',
+                     metrics=['mae'])
+        return model
+    
+    def prepare_data(self, df):
+        """Convert time-series data into supervised learning format"""
+        # Normalize data
+        scaled_data = self.scaler.fit_transform(df)
+        
+        # Create sequences
+        X, y = [], []
+        for i in range(len(scaled_data) - self.time_steps):
+            X.append(scaled_data[i:i+self.time_steps])
+            y.append(scaled_data[i+self.time_steps, -1])  # Last column is RUL
+        
+        return np.array(X), np.array(y)
+    
+    def train(self, X_train, y_train, X_val, y_val, epochs=100):
+        """Train the LSTM model"""
+        early_stop = EarlyStopping(monitor='val_loss', patience=10)
+        
+        history = self.model.fit(
+            X_train, y_train,
+            validation_data=(X_val, y_val),
+            epochs=epochs,
+            batch_size=32,
+            callbacks=[early_stop],
+            verbose=1
+        )
+        return history
+    
+    def predict_rul(self, sequence):
+        """Predict remaining useful life for a new sequence"""
+        # Scale input sequence
+        scaled_seq = self.scaler.transform(sequence)
+        
+        # Reshape for LSTM (samples, time steps, features)
+        input_seq = scaled_seq[-self.time_steps:].reshape(1, self.time_steps, self.features)
+        
+        # Predict and inverse transform
+        prediction = self.model.predict(input_seq)
+        return prediction[0][0]  # Return scalar RUL prediction
+    
+    def evaluate(self, X_test, y_test):
+        """Evaluate model performance on test set"""
+        return self.model.evaluate(X_test, y_test)
+
+# Example usage:
+# rul_predictor = RULPredictor(time_steps=30, features=5)
+# df = pd.read_csv('component_degradation_data.csv')
+# X, y = rul_predictor.prepare_data(df)
+# X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+# rul_predictor.train(X_train, y_train, X_test, y_test)
+# new_sequence = df.iloc[-30:]  # Last 30 time steps
+# rul = rul_predictor.predict_rul(new_sequence)</pre>
+            </div>
+            
+            <div class="business-impact">
+                <h3>Business Impact</h3>
+                <ul>
+                    <li>Predicts exact remaining life of critical components</li>
+                    <li>Captures complex degradation patterns in time-series data</li>
+                    <li>Enables condition-based maintenance rather than scheduled maintenance</li>
+                    <li>Reduces unplanned downtime by anticipating failures</li>
+                </ul>
+            </div>
+            
+            <div class="data-structures">
+                <h3>Key Data Structures</h3>
+                <ul>
+                    <li><strong>Time-series Sequences:</strong> 3D arrays (samples, time steps, features)</li>
+                    <li><strong>LSTM Cells:</strong> Memory units maintaining long-term dependencies</li>
+                    <li><strong>Sliding Windows:</strong> Overlapping sequences for training</li>
+                    <li><strong>RUL Targets:</strong> Continuous values representing remaining life</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="clustering" class="algorithm-container section">
+            <h2>4. K-Means / DBSCAN Clustering</h2>
+            
+            <h3>Purpose</h3>
+            <p>Cluster operational states to identify normal vs. failure-prone modes</p>
+            
+            <h3>Implementation</h3>
+            <div class="code-block">
+<pre>import numpy as np
+import pandas as pd
+from sklearn.cluster import KMeans, DBSCAN
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import silhouette_score
+from sklearn.decomposition import PCA
+import matplotlib.pyplot as plt
+
+class OperationalStateClusterer:
+    def __init__(self, method='kmeans', n_clusters=3):
+        """Initialize clustering model"""
+        self.method = method
+        self.n_clusters = n_clusters
+        self.scaler = StandardScaler()
+        self.pca = PCA(n_components=2)
+        
+        if method == 'kmeans':
+            self.model = KMeans(n_clusters=n_clusters, random_state=42)
+        else:
+            self.model = DBSCAN(eps=0.5, min_samples=10)
+    
+    def load_data(self, filepath):
+        """Load and preprocess sensor data"""
+        df = pd.read_csv(filepath)
+        
+        # Feature engineering
+        df['vib_temp_ratio'] = df['vibration'] / df['temperature']
+        df['pressure_diff'] = df['oil_pressure'] - df['hydraulic_pressure']
+        
+        features = ['vibration', 'temperature', 'oil_pressure',
+                   'hydraulic_pressure', 'vib_temp_ratio', 'pressure_diff']
+        
+        return df[features]
+    
+    def cluster(self, df):
+        """Perform clustering on operational data"""
+        # Scale features
+        scaled_data = self.scaler.fit_transform(df)
+        
+        # Reduce dimensionality for visualization
+        pca_data = self.pca.fit_transform(scaled_data)
+        
+        # Cluster
+        clusters = self.model.fit_predict(scaled_data)
+        
+        # Evaluate
+        if self.method == 'kmeans' and self.n_clusters > 1:
+            score = silhouette_score(scaled_data, clusters)
+            print(f"Silhouette Score: {score:.3f}")
+        
+        return pca_data, clusters
+    
+    def visualize_clusters(self, pca_data, clusters):
+        """Plot clustered operational states"""
+        plt.figure(figsize=(10, 6))
+        scatter = plt.scatter(pca_data[:, 0], pca_data[:, 1], 
+                            c=clusters, cmap='viridis', alpha=0.6)
+        plt.title('Operational State Clustering')
+        plt.xlabel('PCA Component 1')
+        plt.ylabel('PCA Component 2')
+        plt.colorbar(scatter, label='Cluster')
+        plt.show()
+    
+    def analyze_anomalies(self, df, clusters):
+        """Analyze cluster characteristics to identify failure-prone states"""
+        df['cluster'] = clusters
+        
+        # For DBSCAN, outliers are labeled -1
+        if self.method == 'dbscan':
+            anomalies = df[df['cluster'] == -1]
+            print("Anomaly Statistics:")
+            print(anomalies.describe())
+        
+        # For K-means, find clusters with high failure rates
+        elif self.method == 'kmeans':
+            cluster_stats = df.groupby('cluster').mean()
+            print("Cluster Characteristics:")
+            print(cluster_stats)
+
+# Example usage:
+# clusterer = OperationalStateClusterer(method='dbscan')
+# sensor_data = clusterer.load_data('operational_states.csv')
+# pca_data, clusters = clusterer.cluster(sensor_data)
+# clusterer.visualize_clusters(pca_data, clusters)
+# clusterer.analyze_anomalies(sensor_data, clusters)</pre>
+            </div>
+            
+            <div class="business-impact">
+                <h3>Business Impact</h3>
+                <ul>
+                    <li>Identifies previously unknown failure modes through anomaly detection</li>
+                    <li>Provides operational state classification for condition monitoring</li>
+                    <li>Helps identify boundary conditions that lead to accelerated degradation</li>
+                    <li>Supports root cause analysis of failure patterns</li>
+                </ul>
+            </div>
+            
+            <div class="data-structures">
+                <h3>Key Data Structures</h3>
+                <ul>
+                    <li><strong>Feature Vectors:</strong> Multi-dimensional sensor readings</li>
+                    <li><strong>Cluster Labels:</strong> Assignment of each observation to a group</li>
+                    <li><strong>Centroids:</strong> Mean points of clusters (for K-Means)</li>
+                    <li><strong>Distance Matrix:</strong> Pairwise distances between points (for DBSCAN)</li>
+                </ul>
+            </div>
+        </div>
+
+        <section id="system-integration" class="section">
+            <h2>System Integration and Workflow</h2>
+            
+            <h3>Predictive Maintenance Pipeline</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Stage</th>
+                        <th>Components</th>
+                        <th>Technologies</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Data Collection</td>
+                        <td>Sensor data streaming, historical logs</td>
+                        <td>IoT platforms, MQTT, Kafka</td>
+                    </tr>
+                    <tr>
+                        <td>Feature Engineering</td>
+                        <td>Time-series processing, statistical features</td>
+                        <td>Pandas, NumPy, Featuretools</td>
+                    </tr>
+                    <tr>
+                        <td>Model Training</td>
+                        <td>Failure prediction, RUL estimation</td>
+                        <td>Scikit-learn, TensorFlow, PyTorch</td>
+                    </tr>
+                    <tr>
+                        <td>Deployment</td>
+                        <td>Real-time monitoring, alerts</td>
+                        <td>FastAPI, Docker, Kubernetes</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3>Data Requirements</h3>
+            <div class="data-structures">
+                <ul>
+                    <li><strong>Sensor Data:</strong> Vibration, temperature, pressure, etc.</li>
+                    <li><strong>Maintenance Logs:</strong> Failure records, repair history</li>
+                    <li><strong>Operational Metadata:</strong> Usage hours, environmental conditions</li>
+                    <li><strong>Component Specifications:</strong> Design limits, material properties</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <button class="back-to-top" title="Back to top">↑</button>
+
+    <script>
+        // Scroll to reveal animations
+        document.addEventListener('DOMContentLoaded', function() {
+            const sections = document.querySelectorAll('.section');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, {threshold: 0.1});
+            
+            sections.forEach(section => {
+                observer.observe(section);
+            });
+            
+            // Back to top button
+            const backToTopButton = document.querySelector('.back-to-top');
+            
+            window.addEventListener('scroll', () => {
+                if (window.pageYOffset > 300) {
+                    backToTopButton.classList.add('visible');
+                } else {
+                    backToTopButton.classList.remove('visible');
+                }
+            });
+            
+            backToTopButton.addEventListener('click', () => {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
+            
+            // Dark mode toggle
+            const darkModeToggle = document.createElement('button');
+            darkModeToggle.textContent = '🌓';
+            darkModeToggle.style.position = 'fixed';
+            darkModeToggle.style.bottom = '2rem';
+            darkModeToggle.style.right = '2rem';
+            darkModeToggle.style.padding = '0.8rem';
+            darkModeToggle.style.background = 'var(--primary)';
+            darkModeToggle.style.color = '#fff';
+            darkModeToggle.style.border = 'none';
+            darkModeToggle.style.borderRadius = '50%';
+            darkModeToggle.style.cursor = 'pointer';
+            darkModeToggle.style.zIndex = '999';
+            darkModeToggle.style.transition = 'all 0.3s ease';
+            darkModeToggle.addEventListener('click', () => {
+                document.body.classList.toggle('dark');
+            });
+            document.body.appendChild(darkModeToggle);
+        });
+    </script>
+</body>
+</html>

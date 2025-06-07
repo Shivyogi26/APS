@@ -1,4 +1,5 @@
 /* ===== General Reset ===== */
+
 * {
   margin: 0;
   padding: 0;
@@ -509,6 +510,7 @@ body.dark .contact-links a:hover {
 
 /* ===== Image Styling ===== */
 .image {
+  margin: 0 auto; /* Center horizontally */
   max-width: 100%;
   height: auto; /* Maintains aspect ratio without resizing */
   display: block; /* Ensures no extra spacing */

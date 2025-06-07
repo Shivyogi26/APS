@@ -1,0 +1,349 @@
+ /* ===== General Reset ===== */
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+          background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+          color: #333;
+          line-height: 1.6;
+          overflow-x: hidden;
+        }
+
+        /* ===== Root Color Variables ===== */
+        :root {
+          --primary: #3e61c2;
+          --secondary: #cd232b;
+          --accent: #f59e0b;
+          --light-bg: #ffffff;
+          --text-dark: #1f2937;
+          --text-light: #6b7280;
+        }
+
+        /* ===== Navigation ===== */
+        .nav-container {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 1.5rem 2rem;
+          background: var(--primary);
+          color: #fff;
+          position: sticky;
+          top: 0;
+          z-index: 1000;
+          box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+          animation: slideInDown 0.5s ease-out;
+        }
+
+        .logo {
+          font-size: 1.8rem;
+          font-weight: 700;
+          letter-spacing: 1px;
+        }
+
+        .nav-links a {
+          color: #fff;
+          text-decoration: none;
+          margin-left: 1.5rem;
+          font-size: 1.1rem;
+          position: relative;
+          transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+          color: var(--accent);
+        }
+
+        .nav-links a::after {
+          content: '';
+          position: absolute;
+          width: 0;
+          height: 2px;
+          background: var(--accent);
+          bottom: -5px;
+          left: 0;
+          transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover::after {
+          width: 100%;
+        }
+
+        /* ===== Main Layout ===== */
+        main {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 2rem;
+        }
+
+        /* ===== Section Base Styling ===== */
+        .section {
+          padding: 3rem 0;
+          margin-bottom: 2rem;
+          opacity: 0;
+          transform: translateY(50px);
+          transition: all 0.8s ease-out;
+        }
+
+        .section.visible {
+          opacity: 1;
+          transform: translateY(0);
+        }
+
+        h1, h2, h3 {
+          color: var(--primary);
+        }
+
+        h1 {
+          font-size: 2.5rem;
+          border-bottom: 2px solid var(--primary);
+          padding-bottom: 10px;
+          margin-bottom: 1.5rem;
+        }
+
+        h2 {
+          font-size: 2rem;
+          margin-bottom: 1.5rem;
+          position: relative;
+          padding-bottom: 10px;
+        }
+
+        h2::after {
+          content: '';
+          width: 50px;
+          height: 3px;
+          background: var(--secondary);
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          transition: width 0.5s ease;
+        }
+
+        h2:hover::after {
+          width: 100px;
+        }
+
+        h3 {
+          font-size: 1.5rem;
+          border-left: 4px solid var(--primary);
+          padding-left: 10px;
+          margin: 1.5rem 0 1rem;
+        }
+
+        /* ===== Algorithm Containers ===== */
+        .algorithm-container {
+          background: var(--light-bg);
+          border-radius: 10px;
+          padding: 2rem;
+          margin-bottom: 3rem;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+          animation: fadeInUp 0.8s ease-out;
+        }
+
+        /* ===== Code Blocks ===== */
+        .code-block {
+          background-color: #f8f9fa;
+          border: 1px solid #ddd;
+          border-radius: 4px;
+          padding: 1.5rem;
+          overflow-x: auto;
+          font-family: 'Courier New', Courier, monospace;
+          margin: 1.5rem 0;
+          font-size: 0.9rem;
+          line-height: 1.5;
+        }
+
+        /* ===== Highlight Boxes ===== */
+        .business-impact {
+          background-color: #e8f4fc;
+          border-left: 4px solid var(--primary);
+          padding: 1.5rem;
+          margin: 1.5rem 0;
+          border-radius: 0 4px 4px 0;
+        }
+
+        .data-structures {
+          background-color: #eaf7ea;
+          border-left: 4px solid #2ecc71;
+          padding: 1.5rem;
+          margin: 1.5rem 0;
+          border-radius: 0 4px 4px 0;
+        }
+
+        /* ===== Lists ===== */
+        ul, ol {
+          margin: 1rem 0 1rem 2rem;
+        }
+
+        li {
+          margin-bottom: 0.5rem;
+        }
+
+        /* ===== Tables ===== */
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          margin: 1.5rem 0;
+          background: var(--light-bg);
+          border-radius: 10px;
+          overflow: hidden;
+          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+          padding: 1rem;
+          text-align: left;
+          border-bottom: 1px solid #e5e7eb;
+        }
+
+        th {
+          background: var(--primary);
+          color: #fff;
+        }
+
+        tr:hover {
+          background: #f3f4f6;
+        }
+
+        /* ===== Floating Buttons ===== */
+        .back-to-top {
+          position: fixed;
+          bottom: 2rem;
+          right: 2rem;
+          padding: 0.8rem;
+          background: var(--primary);
+          color: #fff;
+          border: none;
+          border-radius: 50%;
+          cursor: pointer;
+          transition: background 0.3s ease, transform 0.3s ease;
+          opacity: 0;
+          visibility: hidden;
+          z-index: 999;
+        }
+
+        .back-to-top.visible {
+          opacity: 1;
+          visibility: visible;
+        }
+
+        .back-to-top:hover {
+          background: var(--accent);
+          transform: scale(1.2);
+        }
+
+        /* ===== Dark Mode ===== */
+        body.dark {
+          background: linear-gradient(135deg, #1f2937, #4b5563);
+          color: #e5e7eb;
+        }
+
+        body.dark .nav-container {
+          background: #111827;
+        }
+
+        body.dark .algorithm-container,
+        body.dark table {
+          background: #1f2937;
+        }
+
+        body.dark h1,
+        body.dark h2,
+        body.dark h3 {
+          color: #e5e7eb;
+        }
+
+        body.dark .code-block {
+          background-color: #2d3748;
+          border-color: #4a5568;
+          color: #e2e8f0;
+        }
+
+        body.dark .business-impact {
+          background-color: #2b4365;
+          border-left-color: #3b82f6;
+        }
+
+        body.dark .data-structures {
+          background-color: #22543d;
+          border-left-color: #38a169;
+        }
+
+        /* ===== Animations ===== */
+        @keyframes slideInDown {
+          from {
+            transform: translateY(-100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateY(0);
+            opacity: 1;
+          }
+        }
+
+        @keyframes fadeInUp {
+          from {
+            transform: translateY(50px);
+            opacity: 0;
+          }
+          to {
+            transform: translateY(0);
+            opacity: 1;
+          }
+        }
+
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+
+        /* ===== Responsive Design ===== */
+        @media (max-width: 768px) {
+          .nav-container {
+            flex-direction: column;
+            gap: 1rem;
+            padding: 1rem;
+          }
+
+          .nav-links {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+          }
+
+          .nav-links a {
+            margin: 0 0.5rem;
+          }
+
+          main {
+            padding: 1rem;
+          }
+
+          h1 {
+            font-size: 2rem;
+          }
+
+          h2 {
+            font-size: 1.7rem;
+          }
+
+          h3 {
+            font-size: 1.3rem;
+          }
+
+          .algorithm-container {
+            padding: 1.5rem;
+          }
+
+          .code-block {
+            padding: 1rem;
+            font-size: 0.8rem;
+          }
+        }
