@@ -594,6 +594,52 @@ class Sim2RealTransfer:
                 </ul>
             </div>
         </section>
+                <section id="complexity" class="section">
+            <h2>Time & Space Complexity Comparison</h2>
+            
+            <div class="complexity-comparison">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Approach</th>
+                            <th>Time Complexity</th>
+                            <th>Space Complexity</th>
+                            <th>Scalability Considerations</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Agent-Based Modeling</td>
+                            <td>O(n * m) per timestep<br>(n = agents, m = interactions)</td>
+                            <td>O(n + e)<br>(n = agents, e = edges)</td>
+                            <td>Scales linearly with components but interactions grow quadratically</td>
+                        </tr>
+                        <tr>
+                            <td>Reinforcement Learning</td>
+                            <td>O(b * k) per episode<br>(b = batch size, k = network size)</td>
+                            <td>O(m + r)<br>(m = model size, r = replay buffer)</td>
+                            <td>Training time dominates; parallelization helps with large networks</td>
+                        </tr>
+                        <tr>
+                            <td>Sim2Real Transfer</td>
+                            <td>O(d * (s + r))<br>(d = domains, s = sim data, r = real data)</td>
+                            <td>O(f + h)<br>(f = feature dim, h = hidden layers)</td>
+                            <td>Domain adaptation adds overhead but reduces real-world data needs</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <h3>Key Observations</h3>
+                <div class="complexity-notes">
+                    <ul>
+                        <li><strong>Agent-Based:</strong> Per-timestep cost is predictable but scales with system complexity</li>
+                        <li><strong>RL:</strong> Training time is high but inference is fast (O(1) after training)</li>
+                        <li><strong>Sim2Real:</strong> Initial training cost pays off with reduced real-world testing requirements</li>
+                        <li><strong>Hybrid Approach:</strong> Combining methods can balance computational costs vs accuracy</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
     </main>
 
     <button class="back-to-top" title="Back to top">↑</button>

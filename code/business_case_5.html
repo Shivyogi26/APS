@@ -523,6 +523,63 @@ class DriverDecisionModel:
                 </ul>
             </div>
         </section>
+                <section id="complexity-comparison" class="section">
+            <h2>Algorithm Complexity Comparison</h2>
+            
+            <h3>Time & Space Complexity Analysis</h3>
+            <table class="complexity-table">
+                <thead>
+                    <tr>
+                        <th>Algorithm</th>
+                        <th>Time Complexity</th>
+                        <th>Space Complexity</th>
+                        <th>Best Use Case</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>PCA</td>
+                        <td>O(n³) for full SVD<br>O(n²k) for truncated (k components)</td>
+                        <td>O(n²)</td>
+                        <td>Initial data exploration, dimensionality reduction</td>
+                    </tr>
+                    <tr>
+                        <td>t-SNE</td>
+                        <td>O(n²) per iteration<br>Becomes impractical for n > 10k</td>
+                        <td>O(n²) (distance matrix)</td>
+                        <td>Visualization of medium-sized datasets</td>
+                    </tr>
+                    <tr>
+                        <td>UMAP</td>
+                        <td>O(n^1.14) approximate</td>
+                        <td>O(n) with nearest-neighbor approx</td>
+                        <td>Large dataset visualization</td>
+                    </tr>
+                    <tr>
+                        <td>LSTM</td>
+                        <td>O(n × t × d²) per epoch<br>(d = hidden units, t = seq length)</td>
+                        <td>O(d² + d × t) per layer</td>
+                        <td>Sequential pattern recognition</td>
+                    </tr>
+                    <tr>
+                        <td>Bayesian Networks</td>
+                        <td>O(k^m) for exact inference<br>(k = states, m = max parents)</td>
+                        <td>O(k^m) for CPT storage</td>
+                        <td>Probabilistic reasoning with known dependencies</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="complexity-notes">
+                <h4>Practical Considerations:</h4>
+                <ul>
+                    <li><strong>PCA:</strong> Most efficient for initial data compression before other algorithms</li>
+                    <li><strong>t-SNE vs UMAP:</strong> UMAP scales better to large datasets (100k+ points)</li>
+                    <li><strong>LSTMs:</strong> Complexity grows quadratically with hidden units - keep architecture lean</li>
+                    <li><strong>Bayesian Networks:</strong> Becomes intractable with many highly-connected nodes</li>
+                </ul>
+            </div>
+        </section>
     </main>
 
     <button class="back-to-top" title="Back to top">↑</button>

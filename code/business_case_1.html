@@ -1075,6 +1075,114 @@ def train_dqn():
                 </ul>
             </div>
         </section>
+                <section id="complexity" class="section">
+            <h2>Algorithm Complexity Comparison</h2>
+            
+            <h3>Time and Space Complexity Analysis</h3>
+            <p>The following table compares the computational characteristics of each algorithm:</p>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Algorithm</th>
+                        <th>Time Complexity</th>
+                        <th>Space Complexity</th>
+                        <th>Best For</th>
+                        <th>Limitations</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>A* Search</td>
+                        <td>O(b<sup>d</sup>)<br>(b = branching factor, d = solution depth)</td>
+                        <td>O(b<sup>d</sup>)<br>(stores all nodes in memory)</td>
+                        <td>Optimal pathfinding in known environments</td>
+                        <td>Can be memory intensive for large state spaces</td>
+                    </tr>
+                    <tr>
+                        <td>Monte Carlo Tree Search (MCTS)</td>
+                        <td>O(n)<br>(n = number of iterations/simulations)</td>
+                        <td>O(n)<br>(grows tree in memory)</td>
+                        <td>Problems with large state spaces where heuristic is hard to define</td>
+                        <td>Requires many simulations for good results</td>
+                    </tr>
+                    <tr>
+                        <td>Markov Decision Process (MDP)</td>
+                        <td>O(n<sup>2</sup>k)<br>(n = states, k = actions)<br>O(n<sup>3</sup>) for policy iteration</td>
+                        <td>O(n<sup>2</sup>)<br>(stores transition matrix)</td>
+                        <td>Sequential decision making under uncertainty</td>
+                        <td>Suffers from curse of dimensionality</td>
+                    </tr>
+                    <tr>
+                        <td>Deep Q-Network (DQN)</td>
+                        <td>O(t)<br>(t = training time, depends on network size)</td>
+                        <td>O(p)<br>(p = parameters in neural network)</td>
+                        <td>Complex environments with high-dimensional state spaces</td>
+                        <td>Requires significant training data and compute resources</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3>Practical Considerations</h3>
+            <div class="business-impact">
+                <ul>
+                    <li><strong>Real-time constraints:</strong> A* and MCTS can be adjusted with depth limits for real-time use</li>
+                    <li><strong>Memory usage:</strong> MDP becomes impractical for very large state spaces</li>
+                    <li><strong>Training vs. inference:</strong> DQN has high training cost but fast inference</li>
+                    <li><strong>Hybrid approaches:</strong> Often combine algorithms (e.g., MCTS with neural network heuristics)</li>
+                </ul>
+            </div>
+            
+            <h3>Performance Characteristics</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Metric</th>
+                        <th>A*</th>
+                        <th>MCTS</th>
+                        <th>MDP</th>
+                        <th>DQN</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Optimality Guarantee</td>
+                        <td>Yes (with admissible heuristic)</td>
+                        <td>Asymptotic (with infinite time)</td>
+                        <td>Yes (with exact solution)</td>
+                        <td>No (approximate)</td>
+                    </tr>
+                    <tr>
+                        <td>Parallelizability</td>
+                        <td>Low</td>
+                        <td>High (simulations can run in parallel)</td>
+                        <td>Medium</td>
+                        <td>High (during training)</td>
+                    </tr>
+                    <tr>
+                        <td>Online Learning</td>
+                        <td>No</td>
+                        <td>Yes</td>
+                        <td>No</td>
+                        <td>Yes</td>
+                    </tr>
+                    <tr>
+                        <td>Handles Uncertainty</td>
+                        <td>Poor</td>
+                        <td>Good</td>
+                        <td>Excellent</td>
+                        <td>Good</td>
+                    </tr>
+                    <tr>
+                        <td>Implementation Complexity</td>
+                        <td>Low</td>
+                        <td>Medium</td>
+                        <td>High</td>
+                        <td>Very High</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
     </main>
 
     <button class="back-to-top" title="Back to top">↑</button>

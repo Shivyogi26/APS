@@ -502,6 +502,57 @@ class ABTester:
                 </ul>
             </div>
         </section>
+                <section id="complexity-comparison" class="section">
+            <h2>Algorithm Complexity Comparison</h2>
+            
+            <h3>Time & Space Complexity Analysis</h3>
+            <table class="complexity-table">
+                <thead>
+                    <tr>
+                        <th>Algorithm</th>
+                        <th>Time Complexity</th>
+                        <th>Space Complexity</th>
+                        <th>Best Use Case</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Collaborative Filtering (NMF)</td>
+                        <td>O(mnk) per iteration<br>(m=users, n=items, k=factors)</td>
+                        <td>O(mk + nk)</td>
+                        <td>Medium-sized user-item matrices (up to 1M users)</td>
+                    </tr>
+                    <tr>
+                        <td>Sentiment Analysis (BERT)</td>
+                        <td>O(L×d²) per sample<br>(L=seq length, d=hidden size)</td>
+                        <td>O(L×d) per sample</td>
+                        <td>Real-time analysis of short-to-medium text</td>
+                    </tr>
+                    <tr>
+                        <td>Fan Clustering (K-Means)</td>
+                        <td>O(mnk×i)<br>(m=samples, n=features, k=clusters, i=iterations)</td>
+                        <td>O(mn + mk)</td>
+                        <td>Segmenting up to 100k fans with <100 features</td>
+                    </tr>
+                    <tr>
+                        <td>A/B Testing</td>
+                        <td>O(n) for analysis<br>(n=sample size)</td>
+                        <td>O(n) during collection</td>
+                        <td>Any audience size with proper sampling</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="complexity-notes">
+                <h4>Practical Considerations:</h4>
+                <ul>
+                    <li><strong>Collaborative Filtering:</strong> Use approximate methods like ALS for large datasets</li>
+                    <li><strong>BERT Models:</strong> Consider DistilBERT for 40% faster inference with minimal accuracy loss</li>
+                    <li><strong>Clustering:</strong> MiniBatch K-Means scales better for very large fan bases</li>
+                    <li><strong>A/B Testing:</strong> Sequential testing can reduce required sample sizes by 30-50%</li>
+                </ul>
+            </div>
+        </section>
     </main>
 
     <button class="back-to-top" title="Back to top">↑</button>

@@ -490,6 +490,57 @@ class DTWAnomalyDetector:
                 </ul>
             </div>
         </section>
+                <section id="complexity" class="section">
+            <h2>Algorithm Complexity Comparison</h2>
+            
+            <h3>Space and Time Complexity Analysis</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Algorithm</th>
+                        <th>Time Complexity</th>
+                        <th>Space Complexity</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Autoencoder</td>
+                        <td>O(n×d<sup>2</sup>) training<br>O(d<sup>2</sup>) inference</td>
+                        <td>O(d<sup>2</sup>)</td>
+                        <td>d = number of neurons in largest layer<br>n = number of training samples</td>
+                    </tr>
+                    <tr>
+                        <td>Hidden Markov Model</td>
+                        <td>O(n×k<sup>2</sup>) training<br>O(k<sup>2</sup>×T) inference</td>
+                        <td>O(k<sup>2</sup> + k×m)</td>
+                        <td>k = number of states<br>m = number of features<br>T = sequence length</td>
+                    </tr>
+                    <tr>
+                        <td>Kalman Filter</td>
+                        <td>O(m<sup>3</sup>) per update</td>
+                        <td>O(m<sup>2</sup>)</td>
+                        <td>m = state dimension<br>Constant complexity per timestep</td>
+                    </tr>
+                    <tr>
+                        <td>Dynamic Time Warping</td>
+                        <td>O(n×m) per comparison</td>
+                        <td>O(n×m)</td>
+                        <td>n,m = lengths of compared sequences<br>Optimizations possible</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="complexity-notes">
+                <h3>Practical Considerations</h3>
+                <ul>
+                    <li><strong>Autoencoder:</strong> Complexity grows quadratically with layer size, but modern GPUs enable efficient training</li>
+                    <li><strong>HMM:</strong> Becomes expensive with many hidden states (>100) but efficient for small state spaces</li>
+                    <li><strong>Kalman Filter:</strong> Excellent for real-time as complexity is constant per update</li>
+                    <li><strong>DTW:</strong> Can be memory-intensive for long sequences - windowing constraints help</li>
+                </ul>
+            </div>
+        </section>
     </main>
 
     <button class="back-to-top" title="Back to top">↑</button>

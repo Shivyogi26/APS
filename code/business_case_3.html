@@ -594,6 +594,94 @@ class CUDACFDSolver:
                 </ul>
             </div>
         </section>
+                <section id="complexity" class="section">
+            <h2>Algorithm Complexity Comparison</h2>
+            
+            <h3>Computational Complexity Analysis</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Algorithm</th>
+                        <th>Time Complexity</th>
+                        <th>Space Complexity</th>
+                        <th>Parallel Efficiency</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>FEM/FVM</td>
+                        <td>O(n<sup>1.5</sup>-n<sup>2</sup>) assembly<br>O(n<sup>2</sup>) solution</td>
+                        <td>O(n<sup>1.3</sup>) storage</td>
+                        <td>Good (80-90%)</td>
+                        <td>n = number of mesh elements<br>Depends on discretization order</td>
+                    </tr>
+                    <tr>
+                        <td>Multigrid</td>
+                        <td>O(n) optimal case<br>O(n log n) typical</td>
+                        <td>O(n) with hierarchy</td>
+                        <td>Excellent (90%+)</td>
+                        <td>Depends on smoother quality<br>Coarsening ratio affects performance</td>
+                    </tr>
+                    <tr>
+                        <td>Conjugate Gradient</td>
+                        <td>O(n√κ) iterations<br>κ = condition number</td>
+                        <td>O(n) storage</td>
+                        <td>Good (70-85%)</td>
+                        <td>κ typically O(h<sup>-2</sup>) for elliptic problems<br>Preconditioning critical</td>
+                    </tr>
+                    <tr>
+                        <td>Parallel Computing</td>
+                        <td>O(n/p + log p)<br>p = processors</td>
+                        <td>O(n/p) per process</td>
+                        <td>Scaling depends on problem</td>
+                        <td>Communication overhead limits scaling<br>GPU: O(n) with high constants</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="complexity-notes">
+                <h3>Practical Performance Considerations</h3>
+                <ul>
+                    <li><strong>FEM/FVM:</strong> Higher-order elements increase accuracy but raise computational cost nonlinearly</li>
+                    <li><strong>Multigrid:</strong> Optimal for elliptic problems but requires careful implementation for complex physics</li>
+                    <li><strong>Conjugate Gradient:</strong> Performance degrades with poor conditioning - preconditioning essential</li>
+                    <li><strong>Parallel Scaling:</strong> Amdahl's Law limits speedup - typically 10-100x on GPU clusters</li>
+                </ul>
+                
+                <h3>Memory Requirements for Typical Problems</h3>
+                <table class="memory-table">
+                    <thead>
+                        <tr>
+                            <th>Mesh Size</th>
+                            <th>FEM/FVM Memory</th>
+                            <th>Multigrid Overhead</th>
+                            <th>CG Working Memory</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1M elements</td>
+                            <td>4-8 GB</td>
+                            <td>+20-30%</td>
+                            <td>2-3x system matrix</td>
+                        </tr>
+                        <tr>
+                            <td>10M elements</td>
+                            <td>40-80 GB</td>
+                            <td>+15-25%</td>
+                            <td>2-3x system matrix</td>
+                        </tr>
+                        <tr>
+                            <td>100M elements</td>
+                            <td>400-800 GB</td>
+                            <td>+10-20%</td>
+                            <td>2-3x system matrix</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
     </main>
 
     <button class="back-to-top" title="Back to top">↑</button>

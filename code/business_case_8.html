@@ -508,6 +508,59 @@ class LoadBalancer:
                 </ul>
             </div>
         </section>
+                <section id="complexity" class="section">
+            <h2>Time & Space Complexity Comparison</h2>
+            
+            <div class="complexity-comparison">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Approach</th>
+                            <th>Time Complexity</th>
+                            <th>Space Complexity</th>
+                            <th>Scalability Considerations</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>MapReduce/Spark</td>
+                            <td>O(n/p + c)<br>(n=data size, p=partitions, c=shuffle cost)</td>
+                            <td>O(n/p) per worker<br>O(k) for aggregations</td>
+                            <td>Linear scaling with cluster size until network bottleneck</td>
+                        </tr>
+                        <tr>
+                            <td>Data Compression</td>
+                            <td>O(n) for LZ4/Snappy<br>O(n log n) for complex algorithms</td>
+                            <td>O(1) streaming<br>O(n) for dictionary-based</td>
+                            <td>CPU-bound but parallelizable, tradeoff between ratio and speed</td>
+                        </tr>
+                        <tr>
+                            <td>Graph Algorithms</td>
+                            <td>O(V+E) for BFS/DFS<br>O(V³) for exact betweenness</td>
+                            <td>O(V+E) for adjacency<br>O(V²) for matrices</td>
+                            <td>Approximate algorithms required for large graphs</td>
+                        </tr>
+                        <tr>
+                            <td>Load Balancing</td>
+                            <td>O(1) for RR<br>O(k) for least-conn<br>(k=servers)</td>
+                            <td>O(k) for server state<br>O(m) for queues<br>(m=requests)</td>
+                            <td>Minimal overhead even at millions of requests per second</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <h3>Key Observations</h3>
+                <div class="complexity-notes">
+                    <ul>
+                        <li><strong>MapReduce:</strong> Shuffle phase (network transfer) often dominates costs</li>
+                        <li><strong>Compression:</strong> Near-linear scaling makes it ideal for big data</li>
+                        <li><strong>Graph:</strong> Community detection scales better than centrality metrics</li>
+                        <li><strong>Load Balancing:</strong> Constant-time algorithms enable high throughput</li>
+                        <li><strong>Hybrid Approach:</strong> Combining compression with distributed processing yields best results</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
     </main>
 
     <button class="back-to-top" title="Back to top">↑</button>
